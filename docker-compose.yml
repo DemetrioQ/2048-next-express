@@ -1,0 +1,36 @@
+services:
+  frontend:
+    build:
+      context: ./2048-next
+      dockerfile: dockerfile.dev
+    ports:
+      - '3000:3000'
+    # volumes:
+    #   - /front/app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    develop:
+      watch:
+        - action: sync
+          path: ./2048-next
+          target: /front/app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
+
+      
+
+  backend:
+    build:
+      context: ./2048-express
+      dockerfile: dockerfile.dev
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./2048-express:/back/app
+      - /back/app/node_modules  # Isolate container's node_modules
+    environment:
+      - NODE_ENV=development
