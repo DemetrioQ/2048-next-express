@@ -1,11 +1,14 @@
-import Hello from "./components/hello";
+'use client';
+
+import GameBoard from '@/components/GameBoard';
+import { useGame } from '@/hooks/useGame';
 
 export default function Home() {
-  console.log('What am i server or client component? -- SERVER')
+  const { grid } = useGame();
+
   return (
-    <>
-      <h1 className="text-3xl">Welcome to Next.js</h1>
-      <Hello />
-    </>
+    <main className="flex justify-center items-center h-screen bg-zinc-900">
+      <GameBoard grid={grid} />
+    </main>
   );
 }
