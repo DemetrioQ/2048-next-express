@@ -1,22 +1,53 @@
 import React from 'react';
+import Tile from '@/components/Tile';
+import { TileData } from '@/types/TileData';
 
+const TILE_SIZE = 4.5 * 16;
+const GAP = 8;
 
-const GameBoard = ({ grid }: { grid: (number | null)[][] }) => {
-    return (
-      <div className="grid grid-cols-4 gap-2">
-        {grid.map((row, rowIndex) =>
-          row.map((tile, colIndex) => (
-            <div
-              key={`${rowIndex}-${colIndex}`}
-              className="w-16 h-16 flex items-center justify-center bg-gray-300 rounded text-xl font-bold"
-            >
-               {tile !== null ? tile : ''}
-            </div>
-          ))
-        )}
-      </div>
-    );
-  };
-  
+const GameBoard = ({ tiles }: { tiles: TileData[] }) => {
+  return (
+    <div
+      className="relative"
+      style={{
+        width: TILE_SIZE * 4 + GAP * 3,
+        height: TILE_SIZE * 4 + GAP * 3,
+        backgroundColor: '#1c1c1c',
+        padding: GAP,
+        borderRadius: 16,
+      }}
+    >
+      {/* Background cells */}
+      {Array.from({ length: 4 }).map((_, row) =>
+        Array.from({ length: 4 }).map((_, col) => (
+          <div
+            key={`bg-${row}-${col}`}
+            className="absolute bg-[#333] rounded"
+            style={{
+              width: TILE_SIZE,
+              height: TILE_SIZE,
+              top: row * (TILE_SIZE + GAP),
+              left: col * (TILE_SIZE + GAP),
+            }}
+          />
+        ))
+      )}
+
+      {/* Active tiles */}
+      {tiles.map(tile => (
+        <Tile
+          key={tile.id}
+          id={tile.id}
+          value={tile.value}
+          isMerged={tile.isMerged}
+          isNew={tile.isNew}
+          mergedFrom={tile.mergedFrom}
+          row={tile.row}
+          col={tile.col}
+        />
+      ))}
+    </div>
+  );
+};
+
 export default GameBoard;
-  
