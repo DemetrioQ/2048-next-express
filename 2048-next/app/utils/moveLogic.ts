@@ -21,6 +21,7 @@ const slideAndMerge = (tiles: TileData[]): TileData[] => {
         isMerged: true,
         mergedFrom: [last.id, tile.id],
       });
+
     } else {
       acc.push({ ...tile });
     }
