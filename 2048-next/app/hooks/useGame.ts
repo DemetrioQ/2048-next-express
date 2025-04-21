@@ -23,8 +23,10 @@ export const useGame = () => {
     },
   ]);
 
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+
       const cleanedTiles = cleanUpTiles(tiles);
       let newTiles = tiles;
       switch (e.key) {
@@ -51,12 +53,8 @@ export const useGame = () => {
       const changed = JSON.stringify(newTiles) !== JSON.stringify(cleanedTiles);
       console.log(changed);
       if (changed) {
-        setTiles(newTiles); // Movement animation
-        
-        setTimeout(() => {
-          const withNewTile = spawnRandomTile(newTiles);
-          setTiles(withNewTile); //Add new tile animation
-        }, 150);
+      const withNewTile = spawnRandomTile(newTiles);
+        setTiles(withNewTile);
       }
     };
 

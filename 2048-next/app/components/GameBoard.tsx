@@ -1,6 +1,7 @@
 import React from 'react';
 import Tile from '@/components/Tile';
 import { TileData } from '@/types/TileData';
+import { AnimatePresence } from 'framer-motion';
 
 const TILE_SIZE = 4.5 * 16;
 const GAP = 8;
@@ -33,19 +34,14 @@ const GameBoard = ({ tiles }: { tiles: TileData[] }) => {
         ))
       )}
 
-      {/* Active tiles */}
-      {tiles.map(tile => (
-        <Tile
-          key={tile.id}
-          id={tile.id}
-          value={tile.value}
-          isMerged={tile.isMerged}
-          isNew={tile.isNew}
-          mergedFrom={tile.mergedFrom}
-          row={tile.row}
-          col={tile.col}
-        />
-      ))}
+      <AnimatePresence>
+        {tiles.map(tile => (
+          <Tile
+            key={tile.id}
+            {...tile}
+          />
+        ))}
+      </AnimatePresence>
     </div>
   );
 };
