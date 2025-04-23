@@ -1,47 +1,40 @@
-import React from 'react';
-import Tile from '@/components/Tile';
+// components/GameBoard.tsx
+import Tile from './Tile';
+import ScoreBoard from './ScoreBoard';
 import { TileData } from '@/types/TileData';
-import { AnimatePresence } from 'framer-motion';
+import { TILE_SIZE, TILE_GAP, GRID_PADDING } from '@/utils/constants';
 
-const TILE_SIZE = 4.5 * 16;
-const GAP = 8;
-
-const GameBoard = ({ tiles }: { tiles: TileData[] }) => {
+const GameBoard = ({ tiles, score, bestScore }: { tiles: TileData[], score: number, bestScore: number }) => {
   return (
+
     <div
-      className="relative"
-      style={{
-        width: TILE_SIZE * 4 + GAP * 3,
-        height: TILE_SIZE * 4 + GAP * 3,
-        backgroundColor: '#1c1c1c',
-        padding: GAP,
-        borderRadius: 16,
-      }}
-    >
-      {/* Background cells */}
-      {Array.from({ length: 4 }).map((_, row) =>
-        Array.from({ length: 4 }).map((_, col) => (
+    className="relative bg-[#bbada0] rounded-lg"
+    style={{
+      width: TILE_SIZE * 4 + TILE_GAP * 5,
+      height: TILE_SIZE * 4 + TILE_GAP * 5,
+      padding: TILE_GAP,
+    }}
+  >
+      {/* Background grid */}
+      {[...Array(4)].map((_, row) =>
+        [...Array(4)].map((_, col) => (
           <div
             key={`bg-${row}-${col}`}
-            className="absolute bg-[#333] rounded"
+            className="absolute rounded-lg"
             style={{
               width: TILE_SIZE,
               height: TILE_SIZE,
-              top: row * (TILE_SIZE + GAP),
-              left: col * (TILE_SIZE + GAP),
+              backgroundColor: '#cdc1b4',
+              top: row * (TILE_SIZE + TILE_GAP),
+              left: col * (TILE_SIZE + TILE_GAP),
             }}
           />
         ))
       )}
 
-      <AnimatePresence>
-        {tiles.map(tile => (
-          <Tile
-            key={tile.id}
-            {...tile}
-          />
-        ))}
-      </AnimatePresence>
+      {tiles.map(tile => (
+        <Tile key={tile.id} tile={tile} />
+      ))}
     </div>
   );
 };

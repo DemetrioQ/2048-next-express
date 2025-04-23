@@ -1,46 +1,47 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { tileColors } from '@/utils/tileColors';
+import { TileData } from '@/types/TileData';
+import { getTileColor } from '@/utils/tileColors';
+import { TILE_SIZE, TILE_GAP } from '@/utils/constants';
 
-const TILE_SIZE = 4.5 * 16;
-const GAP = 8;
 
-type TileProps = {
-  id: string;
-  value: number | null;
-  isNew?: boolean;
-  isMerged?: boolean;
-  mergedFrom?: string[];
-  row: number;
-  col: number;
-  onAnimationComplete?: (id: string) => void;
-};
 
-const Tile = ({ id, value, isNew = false, isMerged = false, mergedFrom, row, col, onAnimationComplete  }: TileProps) => {
-  const bgColor = value ? tileColors[value] || '#3c3a32' : '#2f2f2f';
-  const textColor = value && value > 4 ? '#f9f6f2' : '#776e65';
-
+const  Tile = ({ tile }: { tile: TileData }) => {
+  const left = tile.col * (TILE_SIZE + TILE_GAP);
+  const top = tile.row * (TILE_SIZE + TILE_GAP);
+  const initialTop = (tile.previousRow ?? tile.row) * (TILE_SIZE + TILE_GAP);
+  const initialLeft = (tile.previousCol ?? tile.col) * (TILE_SIZE + TILE_GAP);
   return (
     <motion.div
-      layout
-      layoutId={id}
-      initial={isNew ? { scale: 0 } : false}
-      exit={{ scale: 0.5, opacity: 0 }}
-      animate={{ scale: isMerged ? [1, 1.2, 1] : 1 }}
-      transition={{ layout: { duration: 0.2 }, scale: { duration: 0.2 } }}
-      className="w-16 h-16 flex items-center justify-center rounded text-xl font-bold absolute"
-      onAnimationComplete={() => {console.log("animation completed: " + id); onAnimationComplete?.(id)}}
+      className="absolute flex items-center justify-center font-extrabold rounded-lg shadow-inner"
+      initial={{
+        top: initialTop,
+        left: initialLeft,
+        scale: tile.isNew ? 0 : 1,
+        opacity: tile.isNew ? 0 : 1,
+      }}
+      animate={{
+        top,
+        left,
+        scale: tile.isMerged ? [1, 1.5, 1] : 1,
+        opacity: 1,
+      }}
+      transition={{
+        top: { duration: 0.2, ease: 'easeOut' },
+        left: { duration: 0.2, ease: 'easeOut' },
+        scale: tile.isMerged ? { duration: 0.15 } : 0,
+      }}
       style={{
-        backgroundColor: bgColor,
-        color: textColor,
-        top: row * (TILE_SIZE + GAP),
-        left: col * (TILE_SIZE + GAP),
-        zIndex: isMerged ? 2 : 1,
+        width: TILE_SIZE,
+        height: TILE_SIZE,
+        fontSize: tile.value >= 1024 ? 28 : 32,
+        backgroundColor: getTileColor(tile.value),
+        color: tile.value <= 4 ? '#776e65' : '#f9f6f2',
+        zIndex: tile.isMerged ? 10 : 1,
       }}
     >
-      {value !== null ? value : ''}
+      {tile.value}
     </motion.div>
   );
-};
+}
 
 export default Tile;
