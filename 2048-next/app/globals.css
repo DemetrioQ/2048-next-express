@@ -24,3 +24,29 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* Add this to your global CSS */
+.tile {
+  transition: 
+    top 0.08s ease-out, 
+    left 0.08s ease-out;
+}
+
+/* Add smooth transitions for game over state */
+.game-over-enter {
+  opacity: 0;
+}
+.game-over-enter-active {
+  opacity: 1;
+  transition: opacity 200ms ease-out;
+}
+.game-over-exit {
+  opacity: 1;
+}
+.game-over-exit-active {
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+
+/* Remove any movement blocking classes */
