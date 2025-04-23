@@ -22,13 +22,15 @@ export const spawnRandomTile = (tiles: TileData[]): TileData[] => {
   ];
 };
 
-export const cleanUpTiles = (tiles: TileData[]): TileData[] =>
-  tiles.map(tile => ({
+export const cleanUpTiles = (tiles: TileData[]): TileData[] => {
+  return tiles.map(tile => ({
     ...tile,
-    isMerged: false,
     isNew: false,
+    isMerged: false,
+    previousRow: tile.row,
+    previousCol: tile.col
   }));
-
+};
 const getEmptyPositions = (tiles: TileData[]): { row: number; col: number }[] => {
   const grid = buildGridFromTiles(tiles);
   const empty: { row: number; col: number }[] = [];
