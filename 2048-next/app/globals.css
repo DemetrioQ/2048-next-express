@@ -26,27 +26,24 @@ body {
 }
 
 
-/* Add this to your global CSS */
-.tile {
-  transition: 
-    top 0.08s ease-out, 
-    left 0.08s ease-out;
-}
-
-/* Add smooth transitions for game over state */
-.game-over-enter {
-  opacity: 0;
-}
-.game-over-enter-active {
-  opacity: 1;
-  transition: opacity 200ms ease-out;
-}
-.game-over-exit {
-  opacity: 1;
-}
-.game-over-exit-active {
-  opacity: 0;
-  transition: opacity 200ms ease-out;
-}
 
 /* Remove any movement blocking classes */
+* {
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+}
+
+/* Allow text selection in inputs and textareas */
+input, textarea, [contenteditable] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Optional: Disable touch callouts on iOS */
+* {
+  -webkit-touch-callout: none;
+}
