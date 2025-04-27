@@ -3,25 +3,52 @@
 import { useGame } from '@/hooks/useGame';
 import ScoreBoard from './components/ScoreBoard';
 import GameBoard from './components/GameBoard';
+import GameOverOverlay from './components/GameOverOverlay';
+import { AnimatePresence, motion  } from 'framer-motion';
 
 export default function Home() {
-    const { tiles, score, bestScore, gameOver, resetGame } = useGame();
+    const { tiles, score, bestScore, gameOver, moves, undosLeft, handleUndo, resetGame } = useGame();
 
     return (
         <main className="flex flex-col items-center justify-center min-h-screen bg-[#faf8ef] p-4">
             <h1 className="text-5xl font-bold text-[#776e65] mb-2">2048</h1>
 
-            <div className="flex gap-4 mb-4">
-                <ScoreBoard score={score} bestScore={bestScore} />
-                <button
-                    onClick={resetGame}
-                    className="bg-[#8f7a66] text-white rounded-lg px-4 py-2 text-center hover:bg-[#9f8b77] transition-colors"
-                >
-                    New Game
-                </button>
+             {/* Animated ScoreBoard/GameOver container */}
+             <div className="mb-4 w-full max-w-[500px]">
+                <AnimatePresence mode='wait'>
+                    {gameOver ? (
+                        <motion.div
+                            key="game-over"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <GameOverOverlay 
+                                score={score}
+                                moves={moves}
+                                undosLeft={undosLeft}
+                                onReset={resetGame}
+                                onUndo = {handleUndo}
+                            />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="score-board"
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            transition={{ duration: 0.2 }}
+                            className="flex gap-4 justify-center"
+                        >
+                                <ScoreBoard score={score} bestScore={bestScore} undosLeft={undosLeft} resetGame={resetGame}  onUndo = {handleUndo} />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
+            
 
-            <div>
+            <div className="relative">
                 <GameBoard 
                     tiles={tiles} 
                     score={score} 
@@ -29,6 +56,7 @@ export default function Home() {
                     gameOver={gameOver} 
                     onReset={resetGame} 
                 />
+                
             </div>
 
             <div className="mt-4 text-sm text-[#776e65]">

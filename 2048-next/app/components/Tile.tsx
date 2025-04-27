@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { TileData } from '@/types/TileData';
 import { getTileColor } from '@/utils/tileColors';
-import { TILE_SIZE, TILE_GAP } from '@/utils/constants';
+import { TILE_SIZE, TILE_GAP, GRID_PADDING } from '@/utils/constants';
 
 interface TileProps {
     tile: TileData;
@@ -17,8 +17,8 @@ const Tile = ({ tile }: TileProps) => {
                 backgroundColor: getTileColor(tile.value),
                 color: tile.value <= 4 ? '#776e65' : '#f9f6f2',
                 fontSize: tile.value >= 1024 ? 28 : 36,
-                top: tile.row * (TILE_SIZE + TILE_GAP),
-                left: tile.col * (TILE_SIZE + TILE_GAP),
+                top: (tile.previousRow ?? tile.row) * (TILE_SIZE + TILE_GAP) + GRID_PADDING,
+                left: (tile.previousCol ?? tile.col) * (TILE_SIZE + TILE_GAP) + GRID_PADDING,
                 zIndex: 10,
             }}
             initial={{
@@ -27,8 +27,8 @@ const Tile = ({ tile }: TileProps) => {
                 scale: tile.isNew ? 0 : 1,
             }}
             animate={{
-                top: tile.row * (TILE_SIZE + TILE_GAP),
-                left: tile.col * (TILE_SIZE + TILE_GAP),
+                top: tile.row * (TILE_SIZE + TILE_GAP) + GRID_PADDING,
+                left: tile.col * (TILE_SIZE + TILE_GAP) + GRID_PADDING,
                 scale: tile.isMerged ? [1, 1.1, 1] : 1,
             }}
             transition={{
