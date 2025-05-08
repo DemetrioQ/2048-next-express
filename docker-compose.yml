@@ -1,12 +1,12 @@
 services:
   frontend:
     build:
-      context: ./2048-next
-      dockerfile: dockerfile.dev
+      context: .  
+      dockerfile: ./apps/2048-next/dockerfile.dev 
     ports:
       - '3000:3000'
-    # volumes:
-    #   - /front/app/node_modules
+    volumes:
+      - /app/apps/2048-next/node_modules
     environment:
       - NODE_ENV=development
     depends_on:
@@ -14,23 +14,47 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./2048-next
-          target: /front/app
+          path: ./apps/2048-next
+          target: /app/apps/2048-next
           ignore:
             - node_modules/
         - action: rebuild
           path: package.json
 
-      
+        - action: sync
+          path: ./packages/shared-2048-logic
+          target: /app/packages/shared-2048-logic
+          ignore:
+            - node_modules/
 
   backend:
     build:
-      context: ./2048-express
-      dockerfile: dockerfile.dev
+      context: .
+      dockerfile: ./apps/2048-express/dockerfile.dev
     ports:
       - '8000:8000'
     volumes:
-      - ./2048-express:/back/app
-      - /back/app/node_modules  # Isolate container's node_modules
+      - /app/apps/2048-express/node_modules  
+      # - ./packages/shared-2048-logic:/app/packages/shared-2048-logic
     environment:
       - NODE_ENV=development
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/2048-express
+          target: /app/apps/2048-express
+          ignore:
+            - node_modules/
+
+        - action: rebuild
+          path: package.json
+
+        - action: sync
+          path: ./packages/shared-2048-logic
+          target: /app/packages/shared-2048-logic
+          ignore:
+            - node_modules/
+
+
+# app / apps / front and back
+# app / packages / shared-logic

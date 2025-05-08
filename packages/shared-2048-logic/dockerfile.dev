@@ -1,0 +1,16 @@
+# Use the Node.js image to build the shared logic package
+FROM node:23-alpine
+
+# Set the working directory
+WORKDIR /app/packages/shared-2048-logic
+
+# Install corepack for package manager support
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy only the shared logic package files
+COPY ./packages/shared-2048-logic/package.json ./packages/shared-2048-logic/pnpm-lock.yaml /app/packages/shared-2048-logic/
+
+# Install shared logic dependencies
+RUN pnpm install
+# Default command (if needed, depending on how it's used)
+CMD ["pnpm", "build:watch"]
