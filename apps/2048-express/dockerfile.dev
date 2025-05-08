@@ -1,23 +1,18 @@
-# Use the Node.js image to build the backend app
 FROM node:23-alpine
 
-# Set the working directory
-WORKDIR /app/apps/2048-express
-
-# Install corepack for package manager support
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copy only the backend app files
+WORKDIR /app/apps/2048-express
+
+
 COPY ./apps/2048-express  /app/apps/2048-express
 COPY ./packages/shared-2048-logic /app/packages/shared-2048-logic
 
-
-
-# Install backend dependencies
 RUN pnpm install 
 
-# Expose the backend API port (typically 4000 for Express)
+
+ENV CHOKIDAR_USEPOLLING=true
+
 EXPOSE 8000
 
-# Default command to run the backend app
 CMD ["pnpm", "dev"]

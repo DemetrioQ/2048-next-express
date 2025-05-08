@@ -1,6 +1,7 @@
 import { TileData } from "../types/TileData";
 import { buildGridFromTiles } from "./gridHelper";
 
+
 export const initializeBoard = (): { tiles: TileData[], initialTiles: { row: number, col: number, value: number }[] } => {
   // Create two initial tiles with value 2 in random positions
   const tiles: TileData[] = [];

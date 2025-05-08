@@ -1,21 +1,13 @@
 FROM node:23-alpine
 
-# Enable Corepack and use pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Set working directory to repo root
 WORKDIR /app/apps/2048-next
 
-
-# Copy only the frontend app files
 COPY ./apps/2048-next  /app/apps/2048-next
 COPY ./packages/shared-2048-logic /app/packages/shared-2048-logic
 
-
-# Install dependencies from the root using workspaces
 RUN pnpm install
-
-# Set working dir to the frontend app
 
 EXPOSE 3000
 

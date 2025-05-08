@@ -1,7 +1,9 @@
 {
-    "watch": ["./"],
-    "ext": "ts",
-    "ignore": ["node_modules"],
-    "exec": "ts-node app.ts"
-  }
-  
+  "watch": [
+    "src",
+    "../../packages/shared-2048-logic"
+  ],
+  "ext": "ts,js,json",
+  "exec": "ts-node -r tsconfig-paths/register src/app.ts",
+  "legacyWatch": true
+}
