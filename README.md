@@ -1,0 +1,1 @@
+Find a way to be able to hot reload a local package without copyng the files to each container. (Use the already created / hot realoder ones)
