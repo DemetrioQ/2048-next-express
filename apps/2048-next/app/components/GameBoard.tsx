@@ -2,7 +2,6 @@
 import { TileData } from 'shared-2048-logic/types';
 import Tile from './Tile';
 import { TILE_GAP, TILE_SIZE, GRID_PADDING } from 'shared-2048-logic/utils/constants';
-import { testMethod } from 'shared-2048-logic/utils/gameLogic';
 
 interface GameBoardProps {
     tiles: TileData[];
