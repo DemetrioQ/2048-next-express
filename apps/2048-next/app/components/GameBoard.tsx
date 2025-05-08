@@ -1,6 +1,8 @@
+'use client'
 import { TileData } from 'shared-2048-logic/types';
 import Tile from './Tile';
 import { TILE_GAP, TILE_SIZE, GRID_PADDING } from 'shared-2048-logic/utils/constants';
+import { testMethod } from 'shared-2048-logic/utils/gameLogic';
 
 interface GameBoardProps {
     tiles: TileData[];
@@ -9,6 +11,7 @@ interface GameBoardProps {
     gameOver: boolean;
     onReset: () => void;
 }
+
 
 const GameBoard = ({ tiles, score, bestScore, gameOver, onReset }: GameBoardProps) => {
     const gridSize = TILE_SIZE * 4 + TILE_GAP * 3 + GRID_PADDING * 2;
