@@ -5,9 +5,24 @@ import ScoreBoard from '@/components/ScoreBoard';
 import GameBoard from '@/components/GameBoard';
 import GameOverOverlay from '@/components/GameOverOverlay';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
+import { useState } from 'react';
+import LoginModal from './LoginModal';
 
 export default function GameClient() {
     const { tiles, score, bestScore, gameOver, moves, undosLeft, handleUndo, resetGame } = useGame();
+    const { user } = useAuth();
+
+    const [loginModalOpen, setLoginModalOpen] = useState(false);
+  
+    const handleSubmitScore = () => {
+      if (!user) {
+        setLoginModalOpen(true);
+      } else {
+        console.log('Submitting score for:', user.email);
+        // TODO: Call your score submission API here
+      }
+    };
 
     return (
         <>          
@@ -29,6 +44,7 @@ export default function GameClient() {
                                 undosLeft={undosLeft}
                                 onReset={resetGame}
                                 onUndo={handleUndo}
+                                onSubmitScore={handleSubmitScore}
                             />
                         </motion.div>
                     ) : (
@@ -62,6 +78,8 @@ export default function GameClient() {
                 <p>Join the tiles, get to <strong>2048!</strong></p>
                 <p>Use arrow keys or WASD to move</p>
             </div>
+
+            <LoginModal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
         </>
     );
 }
