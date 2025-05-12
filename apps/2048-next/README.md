@@ -6,7 +6,7 @@
 - [x] New Game Button
 - [x] Undo action (with a limit)
 - [x] Save curent game state in case of reload so that players continue from where they left of.
-- [ ] Record all the moves and tile spawn to send to backend for game validation.
+- [x] Record all the moves and tile spawn to send to backend for game validation.
 - [ ] Authentication to save score in database
 - [ ] Leaderboards (with moves to get to x score?)
  

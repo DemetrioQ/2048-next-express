@@ -2,7 +2,9 @@ services:
   frontend:
     build:
       context: .  
-      dockerfile: ./apps/2048-next/dockerfile.dev 
+      dockerfile: ./apps/2048-next/Dockerfile
+      args:
+        NODE_ENV: development
     ports:
       - '3000:3000'
     volumes:
@@ -26,11 +28,14 @@ services:
           target: /app/packages/shared-2048-logic
           ignore:
             - node_modules/
+    networks:
+      - app-network
+    command: ["pnpm", "dev"]
 
   backend:
     build:
       context: .
-      dockerfile: ./apps/2048-express/dockerfile.dev
+      dockerfile: ./apps/2048-express/Dockerfile
     ports:
       - '8000:8000'
     volumes:
@@ -54,7 +59,29 @@ services:
           target: /app/packages/shared-2048-logic
           ignore:
             - node_modules/
+    depends_on:
+      - mongo
+    networks:
+      - app-network
+    command: ["pnpm", "dev"]
 
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db  # This mounts a volume to persist data
+    networks:
+      - app-network
+
+
+volumes:
+  mongo-data:  # Define the volume here
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
 
 # app / apps / front and back
 # app / packages / shared-logic

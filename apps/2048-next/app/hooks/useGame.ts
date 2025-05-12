@@ -171,14 +171,23 @@ export const useGame = () => {
 
   useEffect(() => {
     const savedState = localStorage.getItem('gameState');
+    if(!savedState){
+      resetGame();
+      return;
+    }
+    
     if (savedState) {
       const parsedObject = JSON.parse(savedState.toString()) as GameState;
+
+      if(parsedObject.score == 0){
+        resetGame();
+        return;
+      }
+
       resumeGame(parsedObject);
 
     }
-    else {
-      resetGame();
-    }
+   
   }, []);
 
 
@@ -191,7 +200,8 @@ export const useGame = () => {
       undoHistory,
       gameOver
     };
-    localStorage.setItem('gameState', JSON.stringify(currentState));
+    if (currentState.score > 0)  localStorage.setItem('gameState', JSON.stringify(currentState));
+   
   }, [tiles, score, moves, undoHistory, undosLeft, gameOver]);
 
   useEffect(() => {
