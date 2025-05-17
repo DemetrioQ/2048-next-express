@@ -50,7 +50,7 @@ const processLine = (line: TileData[], direction: Direction) => {
 };
 
 
-const moveTiles = (tiles: TileData[], direction: 'up' | 'down' | 'left' | 'right'): MoveResult => {
+export const moveTiles = (tiles: TileData[], direction: 'up' | 'down' | 'left' | 'right'): MoveResult => {
   const grid = buildGridFromTiles(tiles);
   const newTiles: TileData[] = [];
   let totalScore = 0;
@@ -58,7 +58,6 @@ const moveTiles = (tiles: TileData[], direction: 'up' | 'down' | 'left' | 'right
 
   const isHorizontal = direction === 'left' || direction === 'right';
   const isForward = direction === 'left' || direction === 'up';
-
   for (let i = 0; i < 4; i++) {
     const line = isHorizontal
       ? grid[i].filter(Boolean) as TileData[]

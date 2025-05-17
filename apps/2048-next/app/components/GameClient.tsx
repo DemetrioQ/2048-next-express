@@ -8,25 +8,34 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import LoginModal from './LoginModal';
+import { fetchWithAuth } from '@/utils/fetchWithAuth';
 
 export default function GameClient() {
-    const { tiles, score, bestScore, gameOver, moves, undosLeft, handleUndo, resetGame } = useGame();
+    const { tiles, score, bestScore, gameOver, moves, seed, moveHistory, undosLeft, handleUndo, resetGame } = useGame();
     const { user } = useAuth();
 
     const [loginModalOpen, setLoginModalOpen] = useState(false);
-  
+
     const handleSubmitScore = () => {
-      if (!user) {
-        setLoginModalOpen(true);
-      } else {
-        console.log('Submitting score for:', user.email);
-        // TODO: Call your score submission API here
-      }
+        if (!user) {
+            setLoginModalOpen(true);
+        } else {
+            console.log('Submitting score for:', user.email);
+            fetchWithAuth(`${process.env.NEXT_PUBLIC_BACKEND_URL}/scores/submit`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ moveHistory: moveHistory, score: score, seed: seed, mode: 'classic' })
+            })
+            // TODO: Call your score submission API here
+        }
     };
 
     return (
-        <>          
-        <h1 className="text-5xl font-bold text-[#776e65] mb-2">2048</h1>
+        <>
+            <h1 className="text-5xl font-bold text-[#776e65] mb-2">2048</h1>
             {/* Animated ScoreBoard/GameOver container */}
             <div className="mb-4 w-full max-w-[500px]">
                 <AnimatePresence mode='wait'>

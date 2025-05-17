@@ -28,10 +28,11 @@ const GameOverOverlay = ({ score, moves, undosLeft, onReset, onUndo, onSubmitSco
                 </motion.button>
 
                 <motion.button
-                    whileHover={{ scale: 1.05 }}
+                    whileHover={ undosLeft == 0 ?  { scale: 1 } :  { scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={onUndo}
-                    className="w-full bg-[#d6cdc4] text-[#776e65] rounded py-2 px-4 hover:bg-[#c4b9ae] transition-colors"
+                    className= {`w-full bg-[#d6cdc4] text-[#776e65] rounded py-2 px-4 ${undosLeft == 0 ? '' :  'hover:bg-[#c4b9ae]'}  transition-colors` } 
+                    disabled = {undosLeft== 0}
                 >
                     Undo ({undosLeft} left)
                 </motion.button>

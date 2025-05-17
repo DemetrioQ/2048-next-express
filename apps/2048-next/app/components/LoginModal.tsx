@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { loginWithOAuth } from '@/utils/api';
+import { getMe, loginWithOAuth } from '@/utils/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [isBrowser, setIsBrowser] = useState(false);
@@ -13,20 +14,11 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
     setIsBrowser(true);
   }, []);
 
+  const authContext = useAuth();
   if (!isBrowser) return null;
 
 
-  const handleOAuth = (provider: 'google' | 'github') => {
-    loginWithOAuth(provider, () => {
-      // Success callback
-      console.log('OAuth login successful!');
-      window.location.reload(); // or call getMe() and update context
-    }, () => {
-      // Error callback
-      console.error('OAuth login failed or canceled.');
-    });
-  };
-  
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-sm rounded-2xl shadow-lg">
@@ -49,10 +41,10 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
 
             <div className="mt-6 text-center text-sm text-muted-foreground">or continue with</div>
             <div className="mt-2 flex justify-center gap-2">
-              <Button onClick={() => handleOAuth("google")} variant="outline">
+              <Button onClick={() => authContext.handleOAuth("google", onClose)} variant="outline">
                 Google
               </Button>
-              <Button onClick={() => handleOAuth("github")} variant="outline">
+              <Button onClick={() => authContext.handleOAuth("github", onClose)} variant="outline">
                 GitHub
               </Button>
             </div>

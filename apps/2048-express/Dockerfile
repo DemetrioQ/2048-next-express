@@ -2,14 +2,19 @@ FROM node:23-alpine
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-WORKDIR /app/apps/2048-express
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+
+
 
 COPY ./apps/2048-express /app/apps/2048-express
 COPY ./packages/shared-2048-logic /app/packages/shared-2048-logic
 
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
-# Optional build step for production (e.g., if you're using TypeScript)
+WORKDIR /app/apps/2048-express
+
 ARG NODE_ENV=development
 ENV NODE_ENV=$NODE_ENV
 
