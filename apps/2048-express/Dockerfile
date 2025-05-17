@@ -2,6 +2,8 @@ FROM node:23-alpine
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
+WORKDIR /app
+
 COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
 COPY package.json ./
