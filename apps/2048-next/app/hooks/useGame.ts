@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { moveUp, moveDown, moveLeft, moveRight} from 'shared-2048-logic/utils/moveLogic';
-import { initializeBoard, generateRandomTile, cleanUpTiles, isGameOver   } from 'shared-2048-logic/utils/gameLogic';
+import { moveUp, moveDown, moveLeft, moveRight } from 'shared-2048-logic/utils/moveLogic';
+import { initializeBoard, generateRandomTile, cleanUpTiles, isGameOver } from 'shared-2048-logic/utils/gameLogic';
 import { GameHistory, TileMove, GameState, TileData } from 'shared-2048-logic/types';
-
+import { generateSeed, getRng } from 'shared-2048-logic/utils/seededRandom';
+import seedrandom from 'seedrandom';
 
 
 
@@ -19,6 +20,7 @@ const loadBestScore = () => {
   return saved ? Number(saved) : 0;
 }
 
+
 export const useGame = () => {
 
   const [score, setScore] = useState(0);
@@ -30,6 +32,8 @@ export const useGame = () => {
   const [undosLeft, setUndosLeft] = useState(0);
   const [maxUndos] = useState(2);
   const [moveHistory, setMoveHistory] = useState<TileMove[]>([]);
+  const [seed, setSeed] = useState('');
+  const rngRef = useRef<seedrandom.PRNG | null>(null);
 
   const isMoving = useRef(false);
 
@@ -41,16 +45,19 @@ export const useGame = () => {
     setTiles(gameState.tiles);
     setGameOver(gameState.gameOver);
     setUndoHistory(gameState.undoHistory);
+    setSeed(gameState.seed);
     const savedScore = loadBestScore();
     if (savedScore) setBestScore(Number(savedScore));
   }
 
   const resetGame = () => {
     localStorage.setItem("gameState", '{}')
+    const [seed, rng] = generateSeed();
+    setSeed(seed)
     setMoves(0);
     setScore(0);
     setUndosLeft(maxUndos);
-    const { tiles, initialTiles } = initializeBoard();
+    const { tiles, initialTiles } = initializeBoard(seed);
     setTiles(tiles);
     setMoveHistory(initialTiles.map(tile => ({
       type: 'init',
@@ -124,8 +131,8 @@ export const useGame = () => {
         return newScore;
       });
 
-      // setTiles(result.tiles);
-      const withNewTile = generateRandomTile(result.tiles);
+      // const rng = getRng(seed);
+      const withNewTile = rngRef.current ? generateRandomTile(result.tiles, rngRef.current) : result.tiles;
       // Track the new tile if it was generated
       setTiles(withNewTile);
       // Check game over after move
@@ -157,6 +164,13 @@ export const useGame = () => {
   }, [tiles, bestScore, moves, maxUndos]);
 
   useEffect(() => {
+    if (seed) {
+      rngRef.current = getRng(seed);
+    }
+  }, [seed]);
+
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd'].includes(e.key)) return;
       e.preventDefault();
@@ -171,15 +185,15 @@ export const useGame = () => {
 
   useEffect(() => {
     const savedState = localStorage.getItem('gameState');
-    if(!savedState){
+    if (!savedState) {
       resetGame();
       return;
     }
-    
+
     if (savedState) {
       const parsedObject = JSON.parse(savedState.toString()) as GameState;
 
-      if(parsedObject.score == 0){
+      if (parsedObject.score == 0) {
         resetGame();
         return;
       }
@@ -187,7 +201,7 @@ export const useGame = () => {
       resumeGame(parsedObject);
 
     }
-   
+
   }, []);
 
 
@@ -198,10 +212,11 @@ export const useGame = () => {
       moves,
       undosLeft,
       undoHistory,
-      gameOver
+      gameOver,
+      seed,
     };
-    if (currentState.score > 0)  localStorage.setItem('gameState', JSON.stringify(currentState));
-   
+    if (currentState.score > 0) localStorage.setItem('gameState', JSON.stringify(currentState));
+
   }, [tiles, score, moves, undoHistory, undosLeft, gameOver]);
 
   useEffect(() => {
@@ -222,6 +237,8 @@ export const useGame = () => {
     bestScore,
     gameOver,
     moves,
+    moveHistory,
+    seed,
     handleUndo,
     undosLeft,
     resetGame

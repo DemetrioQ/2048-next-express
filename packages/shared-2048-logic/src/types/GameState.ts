@@ -8,5 +8,6 @@ export type GameState =  {
   undosLeft: number;
   undoHistory: GameHistory[];
   gameOver: boolean;
+  seed: string;
 }
 

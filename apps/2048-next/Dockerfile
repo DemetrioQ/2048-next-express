@@ -2,14 +2,17 @@ FROM node:23-alpine
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-WORKDIR /app/apps/2048-next
+
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
 
 COPY ./apps/2048-next  /app/apps/2048-next
 COPY ./packages/shared-2048-logic /app/packages/shared-2048-logic
 
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
-
+WORKDIR /app/apps/2048-next
 # Build only in production mode
 ARG NODE_ENV=development
 ENV NODE_ENV=$NODE_ENV
