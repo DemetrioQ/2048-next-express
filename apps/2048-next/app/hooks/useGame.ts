@@ -33,9 +33,23 @@ export const useGame = () => {
   const [maxUndos] = useState(2);
   const [moveHistory, setMoveHistory] = useState<TileMove[]>([]);
   const [seed, setSeed] = useState('');
-  const rngRef = useRef<seedrandom.PRNG | null>(null);
-
+  // const rngRef = useRef<seedrandom.PRNG | null>(null);
+  const rngCallCountRef = useRef(0);
   const isMoving = useRef(false);
+
+  const getRngWithCounter = (seed: string, count: number = 0) => {
+    const rng = getRng(seed);
+      console.log("count in parameter: " + count)
+
+      console.log("count before for loop : " + rngCallCountRef.current)
+    for (let i = 0; i < count; i++) rng(); // fast-forward
+    rngCallCountRef.current = count;
+    return () => {
+      rngCallCountRef.current++;
+      console.log("count after for loop : " + rngCallCountRef.current)
+      return rng();
+    };
+  };
 
 
   const resumeGame = (gameState: GameState) => {
@@ -46,6 +60,7 @@ export const useGame = () => {
     setGameOver(gameState.gameOver);
     setUndoHistory(gameState.undoHistory);
     setSeed(gameState.seed);
+    rngCallCountRef.current = gameState.rngCallCount;
     const savedScore = loadBestScore();
     if (savedScore) setBestScore(Number(savedScore));
   }
@@ -57,7 +72,9 @@ export const useGame = () => {
     setMoves(0);
     setScore(0);
     setUndosLeft(maxUndos);
-    const { tiles, initialTiles } = initializeBoard(seed);
+    const { tiles, initialTiles } = initializeBoard(getRngWithCounter(seed, 0));
+    // rngCallCountRef.current = rngCount;
+    // console.log( rngCallCountRef.current);
     setTiles(tiles);
     setMoveHistory(initialTiles.map(tile => ({
       type: 'init',
@@ -132,7 +149,7 @@ export const useGame = () => {
       });
 
       // const rng = getRng(seed);
-      const withNewTile = rngRef.current ? generateRandomTile(result.tiles, rngRef.current) : result.tiles;
+      const withNewTile =  generateRandomTile(result.tiles, getRngWithCounter(seed, rngCallCountRef.current));
       // Track the new tile if it was generated
       setTiles(withNewTile);
       // Check game over after move
@@ -163,12 +180,20 @@ export const useGame = () => {
 
   }, [tiles, bestScore, moves, maxUndos]);
 
-  useEffect(() => {
-    if (seed) {
-      rngRef.current = getRng(seed);
-    }
-  }, [seed]);
 
+  // useEffect(() => {
+  //   if (seed && !rngRef.current) {
+  //     console.log("rng changed for seed: " + seed)
+  //     rngRef.current = getRngWithCounter(seed, rngCallCountRef.current || 0);
+  //     rngRef.current = getRng(seed);
+  //   }
+  // }, [seed]);
+
+  // useEffect(() => {
+  //   if (rngRef.current) {
+  //     console.log("First 3 rngs:", rngRef.current(), rngRef.current(), rngRef.current());
+  //   }
+  // }, [rngRef.current]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -184,6 +209,12 @@ export const useGame = () => {
   }, [handleMove]);
 
   useEffect(() => {
+
+    const savedHistory = localStorage.getItem('moveHistory');
+    if (savedHistory && savedHistory.length > 0) {
+      setMoveHistory(JSON.parse(savedHistory));
+    }
+
     const savedState = localStorage.getItem('gameState');
     if (!savedState) {
       resetGame();
@@ -193,7 +224,7 @@ export const useGame = () => {
     if (savedState) {
       const parsedObject = JSON.parse(savedState.toString()) as GameState;
 
-      if (parsedObject.score == 0) {
+      if (!parsedObject || !parsedObject.tiles || parsedObject.tiles.length == 0) {
         resetGame();
         return;
       }
@@ -205,6 +236,8 @@ export const useGame = () => {
   }, []);
 
 
+
+
   useEffect(() => {
     const currentState: GameState = {
       tiles: [...tiles],
@@ -214,20 +247,15 @@ export const useGame = () => {
       undoHistory,
       gameOver,
       seed,
+      rngCallCount: rngCallCountRef.current
     };
-    if (currentState.score > 0) localStorage.setItem('gameState', JSON.stringify(currentState));
+    if (currentState.tiles.length > 0) localStorage.setItem('gameState', JSON.stringify(currentState));
 
   }, [tiles, score, moves, undoHistory, undosLeft, gameOver]);
 
-  useEffect(() => {
-    const savedHistory = localStorage.getItem('moveHistory');
-    if (savedHistory) {
-      setMoveHistory(JSON.parse(savedHistory));
-    }
-  }, []);
 
   useEffect(() => {
-    localStorage.setItem('moveHistory', JSON.stringify(moveHistory));
+    if (moveHistory.length > 0) localStorage.setItem('moveHistory', JSON.stringify(moveHistory));
   }, [moveHistory]);
 
 

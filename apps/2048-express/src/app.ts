@@ -10,6 +10,8 @@ import { errorHandler } from './middlewares/errorHandler';
 import MongoStore from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import { REFRESH_TOKEN_EXPIRY_MS } from './config/constants';
+import { requestLogger } from './middlewares/requestLogMiddleware';
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,6 +43,8 @@ app.use(session({
 app.use(passport.initialize());
 // app.use(passport.session());
 app.use(errorHandler);
+app.use(requestLogger);
+
 
 app.use('/auth', authRoutes);
 app.use('/scores', scoresRoutes);

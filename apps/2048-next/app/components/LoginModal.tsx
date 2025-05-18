@@ -1,23 +1,34 @@
-"use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { getMe, loginWithOAuth } from '@/utils/api';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
+
+import { FaGoogle, FaGithub } from "react-icons/fa";
 
 export default function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [isBrowser, setIsBrowser] = useState(false);
+  const authContext = useAuth();
 
   useEffect(() => {
     setIsBrowser(true);
   }, []);
 
-  const authContext = useAuth();
   if (!isBrowser) return null;
 
-
+  const handleOAuthClick = async (provider: "google" | "github") => {
+    try {
+      await authContext.handleOAuth(
+        provider, 
+        onClose,
+        () => toast.success(`Logged in with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`)
+      );
+    } catch (error) {
+      toast.error(`Failed to login with ${provider}`);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -33,25 +44,50 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
           </TabsList>
 
           <TabsContent value="login">
-            <form className="space-y-4 mt-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                // add real login logic here
+                toast.success("Logged in");
+                onClose();
+              }}
+              className="space-y-4 mt-4"
+            >
               <input type="email" placeholder="Email" className="w-full border p-2 rounded" />
               <input type="password" placeholder="Password" className="w-full border p-2 rounded" />
               <Button className="w-full">Login</Button>
             </form>
 
             <div className="mt-6 text-center text-sm text-muted-foreground">or continue with</div>
-            <div className="mt-2 flex justify-center gap-2">
-              <Button onClick={() => authContext.handleOAuth("google", onClose)} variant="outline">
-                Google
+            <div className="mt-4 flex flex-col gap-2">
+              <Button
+                onClick={() => handleOAuthClick("google")}
+                variant="outline"
+                className="w-full justify-start gap-2"
+              >
+                <FaGoogle className="h-5 w-5" />
+                Continue with Google
               </Button>
-              <Button onClick={() => authContext.handleOAuth("github", onClose)} variant="outline">
-                GitHub
+              <Button
+                onClick={() => handleOAuthClick("github")}
+                variant="outline"
+                className="w-full justify-start gap-2"
+              >
+                <FaGithub className="h-5 w-5" />
+                Continue with GitHub
               </Button>
             </div>
           </TabsContent>
 
           <TabsContent value="register">
-            <form className="space-y-4 mt-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                toast.success("Registered successfully");
+                onClose();
+              }}
+              className="space-y-4 mt-4"
+            >
               <input type="email" placeholder="Email" className="w-full border p-2 rounded" />
               <input type="password" placeholder="Password" className="w-full border p-2 rounded" />
               <Button className="w-full">Register</Button>
