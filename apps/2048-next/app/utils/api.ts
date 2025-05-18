@@ -80,3 +80,10 @@ console.log(event.data?.type)
   window.addEventListener('message', handleMessage);
 };
 
+
+export async function logout() {
+  return fetchWithAuth(`${backendUrl}/auth/logout`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+}

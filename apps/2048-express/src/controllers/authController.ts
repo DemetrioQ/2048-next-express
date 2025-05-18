@@ -126,7 +126,7 @@ export const handleOAuthCallback = async (req: Request, res: Response) => {
     if (!req.user) return res.redirect('/login?error=oauth');
     const user = req.user as IUser;
     const { accessToken, refreshToken } = generateTokens(user);
-
+    
     await RefreshToken.create({
         userId: user._id,
         token: refreshToken,
@@ -167,11 +167,13 @@ export const handleOAuthCallback = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
     const token = req.cookies.refresh_token;
+    res.clearCookie('access_token', { path: '/' });
     res.clearCookie('refresh_token', { path: '/' });
     if (token) {
         try {
-            const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as { id: string };
+            // const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as { id: string };
             await RefreshToken.deleteOne({ token });
+            
         } catch { }
     }
     res.sendStatus(204);

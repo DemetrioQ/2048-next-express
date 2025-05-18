@@ -14,14 +14,16 @@ export const submitScore = async (req: Request, res: Response) => {
 
     try {
 
-        if (typeof score !== 'number' || score < 0) {
-            res.status(400).json({ error: 'Invalid score' });
-            return;
-        }
+    if (typeof score !== 'number' || score < 0 || !Array.isArray(moveHistory) || !seed) {
+         res.status(400).json({ error: 'invalid_payload' });
+         return
+    }
+
         const isValid = verifyGame(moveHistory, seed, score)
 
         if (!isValid) {
-            res.status(400).json({ error: 'Invalid game replay' });
+            console.warn(`[CHEAT] User ${user.id} submitted invalid score`);
+            res.status(400).json({ error: 'invalid_score' });
             return;
         }
 
@@ -29,7 +31,8 @@ export const submitScore = async (req: Request, res: Response) => {
 
         const existing = await Score.findOne({ gameHash });
         if (existing) {
-            res.status(400).json({ error: 'This game has already been submitted' });
+            console.warn(`[DUPLICATE] User ${user.id} tried submitting a game twice`);
+            res.status(400).json({ error: 'duplicated_game' });
             return;
         }
 
@@ -38,8 +41,8 @@ export const submitScore = async (req: Request, res: Response) => {
         return;
     }
     catch (err) {
-        console.error(err);
-        res.sendStatus(500);
+        console.error(`[ERROR] Failed to submit score for user ${user.id}`, err);
+        res.status(500).json({ error: 'server_error' });
         return;
 
     }

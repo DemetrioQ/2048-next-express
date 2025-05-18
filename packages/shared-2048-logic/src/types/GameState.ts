@@ -9,5 +9,6 @@ export type GameState =  {
   undoHistory: GameHistory[];
   gameOver: boolean;
   seed: string;
+  rngCallCount: number;
 }
 

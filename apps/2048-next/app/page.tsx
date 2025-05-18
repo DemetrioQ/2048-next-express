@@ -1,9 +1,10 @@
-import GameClientWrapper from "./components/GameClientWrapper";
+import GameClient from "./components/GameClient";
+import Navbar from "./components/NavBar";
 
 export default function Home() {
     return (
-        <main className="flex flex-col items-center justify-center min-h-screen bg-[#faf8ef] p-4">
-            <GameClientWrapper />
+        <main className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-4">
+            <GameClient />
         </main>
     );
 }

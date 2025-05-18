@@ -9,27 +9,64 @@ import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import LoginModal from './LoginModal';
 import { fetchWithAuth } from '@/utils/fetchWithAuth';
+import LogoutButton from './LogoutButton';
+import { toast } from 'sonner';
+import Navbar from './NavBar';
 
 export default function GameClient() {
     const { tiles, score, bestScore, gameOver, moves, seed, moveHistory, undosLeft, handleUndo, resetGame } = useGame();
     const { user } = useAuth();
 
     const [loginModalOpen, setLoginModalOpen] = useState(false);
+    const [scoreSubmitted, setScoreSubmitted] = useState(false);
+    const [scoreSubmitting, setScoreSubmitting] = useState(false);
 
-    const handleSubmitScore = () => {
+    const handleGameReset =() =>{
+        setScoreSubmitted(false);
+        resetGame();
+    }
+    const handleSubmitScore = async () => {
         if (!user) {
             setLoginModalOpen(true);
-        } else {
-            console.log('Submitting score for:', user.email);
-            fetchWithAuth(`${process.env.NEXT_PUBLIC_BACKEND_URL}/scores/submit`, {
+            return;
+        }
+
+        if (scoreSubmitted || scoreSubmitting) return;
+        setScoreSubmitting(true);
+
+        try {
+            const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_BACKEND_URL}/scores/submit`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ moveHistory: moveHistory, score: score, seed: seed, mode: 'classic' })
-            })
-            // TODO: Call your score submission API here
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ moveHistory, score, seed, mode: 'classic' }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                setScoreSubmitted(true);
+                toast.success('Score submitted!');
+            } else {
+                switch (data.error) {
+                    case 'invalid_score':
+                        toast.error("That score wasn't valid. Try playing a fresh game.");
+                        break;
+                    case 'duplicated_game':
+                        toast.warning('This score was already submitted.');
+                        break;
+                    case 'invalid_payload':
+                        toast.error('Invalid submission data.');
+                        break;
+                    default:
+                        toast.error('Server error. Try again.');
+                }
+            }
+        } catch (error) {
+            console.error('Submit error:', error);
+            toast.error('Submission failed. Check your connection.');
+        } finally {
+            setScoreSubmitting(false);
         }
     };
 
@@ -51,9 +88,12 @@ export default function GameClient() {
                                 score={score}
                                 moves={moves}
                                 undosLeft={undosLeft}
-                                onReset={resetGame}
+                                scoreSubmitted={scoreSubmitted}
+                                scoreSubmitting={scoreSubmitting}
+                                onReset={handleGameReset}
                                 onUndo={handleUndo}
                                 onSubmitScore={handleSubmitScore}
+                      
                             />
                         </motion.div>
                     ) : (
@@ -89,6 +129,8 @@ export default function GameClient() {
             </div>
 
             <LoginModal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
+      
+
         </>
     );
 }

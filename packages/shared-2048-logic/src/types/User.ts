@@ -1,5 +1,6 @@
 export type PublicUser = {
-  // id: string;
   email: string;
+  providers: ('local' | 'google' | 'github')[];
+  avatarUrl?: string;
   createdAt?: Date;
 };

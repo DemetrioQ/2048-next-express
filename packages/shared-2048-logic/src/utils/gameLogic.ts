@@ -4,14 +4,16 @@ import { buildGridFromTiles } from "./gridHelper";
 import { moveTiles } from "./moveLogic";
 import { getRng } from "./seededRandom";
 
-export const initializeBoard = (seed: string): { tiles: TileData[], initialTiles: { row: number, col: number, value: number }[] } => {
+export const initializeBoard = (rng: () => number): { tiles: TileData[], initialTiles: { row: number, col: number, value: number }[] } => {
   // Create two initial tiles with value 2 in random positions
   const tiles: TileData[] = [];
-  const rng = getRng(seed);
+
+  // let rngCount = 0;
 
   // First tile (random position)
   const row1 = Math.floor(rng() * 4);
   const col1 = Math.floor(rng() * 4);
+  // rngCount += 2;
 
   tiles.push({
     id: crypto.randomUUID(),
@@ -26,6 +28,7 @@ export const initializeBoard = (seed: string): { tiles: TileData[], initialTiles
   do {
     row2 = Math.floor(rng() * 4);
     col2 = Math.floor(rng() * 4);
+    // rngCount += 2;
   } while (row2 === row1 && col2 === col1); // Ensure different position
 
   tiles.push({
@@ -41,7 +44,8 @@ export const initializeBoard = (seed: string): { tiles: TileData[], initialTiles
     initialTiles: [
       { row: row1, col: col1, value: 2 },
       { row: row2, col: col2, value: 2 }
-    ]
+    ],
+    // rngCount 
   };
 };
 
@@ -128,7 +132,7 @@ export const verifyGame = (tileMoves: TileMove[], seed: string, submittedScore: 
 
   const rng = getRng(seed);
 
-  let { tiles, initialTiles } = initializeBoard(seed);
+  let { tiles, initialTiles } = initializeBoard(rng);
   //Dont need to set initial tiles since the TileMove[] will give them because they are marked as type: "init"
   let moveHistory : TileMove[] = initialTiles.map(tile => ({
       type: 'init',
