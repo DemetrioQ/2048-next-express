@@ -14,10 +14,10 @@ router.post('/register', register);
 router.post('/login', passport.authenticate('local'), login);
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_URL}/login?error=true` }), handleOAuthCallback);
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_URL}/oauth/failure` }), handleOAuthCallback);
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
-router.get('/github/callback', passport.authenticate('github', { failureRedirect: `${process.env.FRONTEND_URL}/` }), handleOAuthCallback);
+router.get('/github/callback', passport.authenticate('github', { failureRedirect: `${process.env.FRONTEND_URL}/oauth/failure` }), handleOAuthCallback);
 
-router.post('/logout', logout);
+router.post('/logout', authMiddleware, logout);
 
 export default router;

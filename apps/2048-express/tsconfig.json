@@ -9,9 +9,21 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "shared-2048-logic/*": ["../../packages/shared-2048-logic/src/*"]
+      "shared-2048-logic/*": [
+        "../../packages/shared-2048-logic/src/*"
+      ]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["node", "express"],
-  }
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "types": [
+      "node",
+      "express"
+    ]
+  },
+  "include": [
+    "src",
+    "types"
+  ]
 }

@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 import { FaGoogle, FaGithub } from "react-icons/fa";
+import RegisterForm from "./RegisterForm";
 
 export default function LoginModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [isBrowser, setIsBrowser] = useState(false);
@@ -21,7 +22,7 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
   const handleOAuthClick = async (provider: "google" | "github") => {
     try {
       await authContext.handleOAuth(
-        provider, 
+        provider,
         onClose,
         () => toast.success(`Logged in with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`)
       );
@@ -45,16 +46,23 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
 
           <TabsContent value="login">
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                // add real login logic here
-                toast.success("Logged in");
-                onClose();
+                const email = e.currentTarget.email.value;
+                const password = e.currentTarget.password.value;
+
+                try {
+                  await authContext.login({ email, password });
+                  toast.success("Logged in successfully");
+                  onClose();
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Login failed");
+                }
               }}
               className="space-y-4 mt-4"
             >
-              <input type="email" placeholder="Email" className="w-full border p-2 rounded" />
-              <input type="password" placeholder="Password" className="w-full border p-2 rounded" />
+              <input name="email" type="email" placeholder="Email" className="w-full border p-2 rounded" />
+              <input name="password" type="password" placeholder="Password" className="w-full border p-2 rounded" />
               <Button className="w-full">Login</Button>
             </form>
 
@@ -80,18 +88,7 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
           </TabsContent>
 
           <TabsContent value="register">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                toast.success("Registered successfully");
-                onClose();
-              }}
-              className="space-y-4 mt-4"
-            >
-              <input type="email" placeholder="Email" className="w-full border p-2 rounded" />
-              <input type="password" placeholder="Password" className="w-full border p-2 rounded" />
-              <Button className="w-full">Register</Button>
-            </form>
+            <RegisterForm onSuccess={onClose} />
           </TabsContent>
         </Tabs>
       </DialogContent>

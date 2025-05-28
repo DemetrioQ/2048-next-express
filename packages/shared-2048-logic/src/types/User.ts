@@ -1,6 +1,12 @@
 export type PublicUser = {
+  id: string;
   email: string;
+  username?: string;
+  isVerified: boolean;
   providers: ('local' | 'google' | 'github')[];
-  avatarUrl?: string;
+  avatar: {
+    imageUrl: string,
+    imageKey: string
+  }
   createdAt?: Date;
 };

@@ -1,22 +1,41 @@
 // /context/AuthContext.tsx
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getMe, loginWithOAuth, logout } from '@/utils/api';
+import { getMe, loginWithOAuth, logout, registerUser, loginUser } from '@/utils/api';
 import { PublicUser } from 'shared-2048-logic/types/User'
 import { toast } from 'sonner';
-
 
 
 interface AuthContextType {
     user: PublicUser | null;
     setUser: React.Dispatch<React.SetStateAction<PublicUser | null>>;
+    loading: boolean;
+    login: (credentials: { email: string; password: string }) => Promise<void>;
     handleOAuth: (provider: 'google' | 'github', onClose: () => void, successAlert: () => void) => void;
     handleLogout: () => void;
+    register: (data: { email: string; username: string; password: string }) => Promise<void>;
+    refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<PublicUser | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const register = async (data: {
+        email: string;
+        username: string;
+        password: string;
+    }) => {
+        
+        await registerUser(data);
+    };
+
+    const login = async (credentials: { email: string; password: string }) => {
+        const response = await loginUser(credentials);
+        setUser(response.user); // Optional: set user immediately
+    };
+
 
     const handleOAuth = (provider: 'google' | 'github', onClose: () => void, successAlert: () => void) => {
         loginWithOAuth(
@@ -25,18 +44,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 try {
                     setUser(user);
                     onClose();
-                    successAlert(); 
+                    successAlert();
                 } catch (err) {
                     console.error('Failed to fetch user after OAuth:', err);
+
                 }
             },
             () => {
                 console.error('OAuth login failed or canceled.');
             }
         );
-
-
-
     };
 
     const handleLogout = () => {
@@ -45,11 +62,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
 
     };
+
+
+    const refreshUser = () => {
+        setLoading(true);
+        getMe().then((data) => {
+            if (data?.user) setUser(data.user);
+        }).catch((rq) => console.log(rq))
+            .finally(() => setLoading(false));
+    }
+
     useEffect(() => {
         try {
-            getMe().then((data) => {
-                if (data?.user) setUser(data.user);
-            }).catch((rq) => console.log(rq));
+            console.log('[AuthProvider] useEffect called');
+            refreshUser();
         }
         catch (err: any) {
             console.log(err);
@@ -57,7 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, setUser, handleOAuth, handleLogout }}>
+        <AuthContext.Provider value={{ user, setUser, loading,  login, handleOAuth, register, handleLogout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

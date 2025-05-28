@@ -1,11 +1,15 @@
 import { refreshToken } from './api';
 
 let isRefreshing = false;
-let refreshPromise: Promise<void> | null = null;
+let refreshPromise: Promise<boolean>;
 let failedQueue: (() => void)[] = [];
 
-const processQueue = () => {
-  failedQueue.forEach(cb => cb());
+const processQueue = (shouldRetry: boolean) => {
+  if (shouldRetry) {
+    failedQueue.forEach(cb => cb());
+  } else {
+    failedQueue = []; // Don't retry, just clear
+  }
   failedQueue = [];
 };
 
@@ -29,16 +33,29 @@ export async function fetchWithAuth(
   if (!isRefreshing) {
     isRefreshing = true;
     refreshPromise = refreshToken()
+      .then(success => {
+        processQueue(success);
+        return success;
+      })
       .catch(() => {
-        console.error("Refresh token failed");
+        processQueue(false);
+        return false;
       })
       .finally(() => {
         isRefreshing = false;
-        processQueue();
       });
   }
 
-  await refreshPromise;
+
+
+
+  const refreshSucceeded = await refreshPromise;
+  processQueue(refreshSucceeded);
+
+  if (!refreshSucceeded) {
+    // Optional: you could redirect to login or show an error
+    return res; // return the original 401 response
+  }
 
   return new Promise((resolve, reject) => {
     const retryCall = () => {
@@ -47,7 +64,6 @@ export async function fetchWithAuth(
         .catch(reject);
     };
     failedQueue.push(retryCall);
-    if (!isRefreshing) retryCall(); // in case refresh finished instantly
+    if (!isRefreshing) retryCall(); // edge case: refresh completed fast
   });
 }
-

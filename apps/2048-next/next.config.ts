@@ -8,8 +8,25 @@ const nextConfig: NextConfig = {
     externalDir: true
   },
    images: {
-        domains: ['lh3.googleusercontent.com', 'avatars.githubusercontent.com'],
-    },
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        pathname: '/**',
+      },
+          {
+        protocol: 'https',
+        hostname: 'gnmssp943a.ufs.sh',
+        pathname: '/**',
+      },
+      
+    ],
+  }
 };
 
 export default nextConfig;

@@ -12,11 +12,14 @@ passport.use(
     { usernameField: 'email' },
     async (email, password, done) => {
       try {
+
         const user = await User.findOne({ email });
         if (!user) return done(null, false, { message: 'Incorrect email.' });
 
         if(!user.password) return
         const isMatch = await bcrypt.compare(password, user.password);
+
+        console.log(isMatch)
         if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
 
         return done(null, user);
@@ -27,8 +30,7 @@ passport.use(
   )
 );
 
-// Google Strategy
-// Google Strategy
+
 passport.use(
   new GoogleStrategy(
     {
@@ -51,8 +53,10 @@ passport.use(
 
           // Update profile image if available and different
           const photo = profile.photos?.[0]?.value;
-          if (photo && user.profileImage !== photo) {
-            user.profileImage = photo;
+
+          if(!user.avatar) user.avatar = {};
+          if (photo && !user.avatar.imageUrl) {
+            user.avatar.imageUrl = photo;
           }
 
           await user.save();
@@ -61,6 +65,7 @@ passport.use(
             email,
             oauth: { googleId: profile.id },
             profileImage: profile.photos?.[0]?.value,
+            verified: true,
           });
         }
 
@@ -95,16 +100,18 @@ passport.use(
           if (!user.oauth.githubId) user.oauth.githubId = profile.id;
 
           const photo = profile.photos?.[0]?.value;
-          if (photo && user.profileImage !== photo) {
-            user.profileImage = photo;
+          
+          if(!user.avatar) user.avatar = {};
+          if (photo && !user.avatar.imageUrl) {
+            user.avatar.imageUrl = photo;
           }
-
           await user.save();
         } else {
           user = await User.create({
             email,
             oauth: { githubId: profile.id },
             profileImage: profile.photos?.[0]?.value,
+            verified: true,
           });
         }
 

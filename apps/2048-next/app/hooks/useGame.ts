@@ -195,18 +195,27 @@ export const useGame = () => {
   //   }
   // }, [rngRef.current]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd'].includes(e.key)) return;
-      e.preventDefault();
-      handleMove(e.key.replace('Arrow', '').toLowerCase());
-    };
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    const active = document.activeElement;
+    const isInputFocused =
+      active &&
+      (active.tagName === 'INPUT' ||
+        active.tagName === 'TEXTAREA' ||
+        (active as HTMLElement).isContentEditable);
 
+    if (isInputFocused) return; // Don't trigger game moves while typing
 
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd'].includes(e.key)) return;
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleMove]);
+    e.preventDefault();
+    handleMove(e.key.replace('Arrow', '').toLowerCase());
+  };
+
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+}, [handleMove]);
+
 
   useEffect(() => {
 
