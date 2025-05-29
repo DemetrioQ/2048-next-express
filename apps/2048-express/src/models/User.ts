@@ -21,6 +21,7 @@ export interface IUser extends Document {
   verified: boolean;
   verificationToken?: string | null;
   verificationExpires?: Date | null;
+  lastVerificationEmailSent?: Date | null;
 
   toPublic: () => PublicUser;
 }

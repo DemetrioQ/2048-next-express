@@ -97,6 +97,7 @@ export const register = async (req: Request, res: Response) => {
             verified: false,
             verificationToken,
             verificationExpires: Date.now() + 1000 * 60 * 60 * 24, // 24 hours
+            lastVerificationEmailSent: Date.now()
         });
         await newUser.save();
 

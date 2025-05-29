@@ -7,6 +7,8 @@ import { UTApi } from "uploadthing/server";
 import { randomUUID } from 'crypto';
 import sendEmail from 'src/utils/sendEmail';
 
+const COOLDOWN_MINUTES = Number(process.env.EMAIL_VALIDATION_COOLDOWN_IN_MINUTES) || 5;
+
 const utapi = new UTApi();
 export const updateAvatar = async (req: Request, res: Response) => {
     const { imageUrl, imageKey } = req.body;
@@ -117,9 +119,19 @@ export const verifyEmail = async (req: Request, res: Response) => {
 export const resendEmailVerification = async (req: Request, res: Response) => {
   const user = req.user as IUser;
 
-  console.log(user)
+ 
   if (user.verified) {
      res.status(400).json({ message: 'Email is already verified.' });
+     return;
+  }
+
+  
+  const now = new Date();
+  const lastSent = user.lastVerificationEmailSent;
+
+  if (lastSent && now.getTime() - lastSent.getTime() < COOLDOWN_MINUTES * 60 * 1000) {
+    const secondsLeft = Math.ceil((COOLDOWN_MINUTES * 60 * 1000 - (now.getTime() - lastSent.getTime())) / 1000);
+     res.status(429).json({ message: `Please wait ${secondsLeft} seconds before resending verification email.` });
      return;
   }
 
@@ -127,6 +139,7 @@ export const resendEmailVerification = async (req: Request, res: Response) => {
   user.verified = false;
   user.verificationToken = verificationToken;
   user.verificationExpires = new Date(Date.now() + 1000 * 60 * 60 * 24);
+  user.lastVerificationEmailSent = now;
 
   await user.save();
 

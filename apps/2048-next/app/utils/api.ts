@@ -183,7 +183,7 @@ export async function verifyEmail(token: string) {
 
 export async function resendEmailVerification() {
 
-  const res = await fetch(`${backendUrl}/profile/resend-verification`, {
+  const res = await fetchWithAuth(`${backendUrl}/profile/resend-verification`, {
     method: 'POST',
     credentials: 'include',
   });

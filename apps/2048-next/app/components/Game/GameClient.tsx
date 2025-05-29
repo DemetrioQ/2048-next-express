@@ -14,7 +14,7 @@ import { useSearchParams } from 'next/navigation';
 
 export default function GameClient() {
     const { tiles, score, bestScore, gameOver, moves, seed, moveHistory, undosLeft, handleUndo, resetGame } = useGame();
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
 
     const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [scoreSubmitted, setScoreSubmitted] = useState(false);
@@ -24,7 +24,7 @@ export default function GameClient() {
 
     
   useEffect(() => {
-    if (showLogin) {
+    if (showLogin && !loading && !user) {
       setLoginModalOpen(true);
     }
   }, [showLogin]);

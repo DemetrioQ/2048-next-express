@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         username: string;
         password: string;
     }) => {
-        
+
         await registerUser(data);
     };
 
@@ -68,7 +68,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         getMe().then((data) => {
             if (data?.user) setUser(data.user);
-        }).catch((rq) => console.log(rq))
+        }).catch((rq) => {
+            setUser(null);
+            console.log(rq);
+        })
             .finally(() => setLoading(false));
     }
 
@@ -83,7 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, setUser, loading,  login, handleOAuth, register, handleLogout, refreshUser }}>
+        <AuthContext.Provider value={{ user, setUser, loading, login, handleOAuth, register, handleLogout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );
