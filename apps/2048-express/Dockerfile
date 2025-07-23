@@ -4,14 +4,14 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-COPY ../../pnpm-lock.yaml ./
-COPY ../../pnpm-workspace.yaml ./
-COPY ../../package.json ./
+COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
 
 
 
-COPY ../../apps/2048-express /app/apps/2048-express
-COPY ../../packages/shared-2048-logic /app/packages/shared-2048-logic
+COPY ./apps/2048-express /app/apps/2048-express
+COPY ./packages/shared-2048-logic /app/packages/shared-2048-logic
 
 RUN pnpm install --frozen-lockfile
 
