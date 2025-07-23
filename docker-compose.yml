@@ -2,7 +2,7 @@ services:
   frontend:
     build:
       context: .  
-      dockerfile: ./apps/2048-next/Dockerfile
+      dockerfile: ./apps/2048-next/Dockerfile.dev
       args:
         NODE_ENV: development
     ports:
@@ -35,7 +35,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: ./apps/2048-express/Dockerfile
+      dockerfile: ./apps/2048-express/Dockerfile.dev
     ports:
       - '8000:8000'
     volumes:
