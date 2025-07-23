@@ -7,7 +7,7 @@ export function getRng(seed: string) {
 
 
 export function generateSeed(): [string, seedrandom.PRNG] {
-  const seed = crypto.randomUUID(); // or Date.now().toString()
+  const seed = crypto.randomUUID(); 
   const rng = seedrandom(seed);
 
   return [seed, rng]

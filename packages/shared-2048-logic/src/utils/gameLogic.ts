@@ -16,7 +16,7 @@ export const initializeBoard = (rng: () => number): { tiles: TileData[], initial
   // rngCount += 2;
 
   tiles.push({
-    id: crypto.randomUUID(),
+    id: generateTileId(row1, col1, 2, rng),
     value: 2,
     row: row1,
     col: col1,
@@ -32,7 +32,7 @@ export const initializeBoard = (rng: () => number): { tiles: TileData[], initial
   } while (row2 === row1 && col2 === col1); // Ensure different position
 
   tiles.push({
-    id: crypto.randomUUID(),
+    id: generateTileId(row2, col2, 2, rng),
     value: 2,
     row: row2,
     col: col2,
@@ -45,7 +45,6 @@ export const initializeBoard = (rng: () => number): { tiles: TileData[], initial
       { row: row1, col: col1, value: 2 },
       { row: row2, col: col2, value: 2 }
     ],
-    // rngCount 
   };
 };
 
@@ -82,7 +81,7 @@ export const generateRandomTile = (existingTiles: TileData[], rng: () => number)
   return [
     ...existingTiles,
     {
-      id: crypto.randomUUID(),
+      id: generateTileId(row, col, value, rng),
       value,
       row,
       col,
@@ -133,6 +132,7 @@ export const verifyGame = (tileMoves: TileMove[], seed: string, submittedScore: 
   const rng = getRng(seed);
 
   let { tiles, initialTiles } = initializeBoard(rng);
+
   //Dont need to set initial tiles since the TileMove[] will give them because they are marked as type: "init"
   let moveHistory : TileMove[] = initialTiles.map(tile => ({
       type: 'init',
@@ -204,4 +204,10 @@ export const verifyGame = (tileMoves: TileMove[], seed: string, submittedScore: 
   if (score != submittedScore) return false;
 
   return true;
+}
+
+
+
+function generateTileId(row: number, col: number, value: number, rng: () => number) {
+  return `t-${row}-${col}-${value}-${Math.floor(rng() * 1_000_000_000)}`;
 }

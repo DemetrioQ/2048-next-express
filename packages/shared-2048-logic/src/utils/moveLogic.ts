@@ -58,6 +58,7 @@ export const moveTiles = (tiles: TileData[], direction: 'up' | 'down' | 'left' |
 
   const isHorizontal = direction === 'left' || direction === 'right';
   const isForward = direction === 'left' || direction === 'up';
+  
   for (let i = 0; i < 4; i++) {
     const line = isHorizontal
       ? grid[i].filter(Boolean) as TileData[]
