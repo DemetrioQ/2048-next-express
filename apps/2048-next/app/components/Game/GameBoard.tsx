@@ -5,14 +5,14 @@ import { TILE_GAP, TILE_SIZE, GRID_PADDING } from 'shared-2048-logic/utils/const
 
 interface GameBoardProps {
     tiles: TileData[];
-    score: number;
-    bestScore: number;
-    gameOver: boolean;
-    onReset: () => void;
+    // score: number;
+    // bestScore: number;
+    // gameOver: boolean;
+    // onReset: () => void;
 }
 
 
-const GameBoard = ({ tiles, score, bestScore, gameOver, onReset }: GameBoardProps) => {
+const GameBoard = ({ tiles }: GameBoardProps) => {
     const gridSize = TILE_SIZE * 4 + TILE_GAP * 3 + GRID_PADDING * 2;
     return (
         <div

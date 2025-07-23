@@ -125,10 +125,6 @@ export default function GameClient() {
             <div className="relative">
                 <GameBoard
                     tiles={tiles}
-                    score={score}
-                    bestScore={bestScore}
-                    gameOver={gameOver}
-                    onReset={resetGame}
                 />
 
             </div>

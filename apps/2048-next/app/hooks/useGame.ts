@@ -39,14 +39,14 @@ export const useGame = () => {
 
   const getRngWithCounter = (seed: string, count: number = 0) => {
     const rng = getRng(seed);
-      console.log("count in parameter: " + count)
+      // console.log("count in parameter: " + count)
 
-      console.log("count before for loop : " + rngCallCountRef.current)
+      // console.log("count before for loop : " + rngCallCountRef.current)
     for (let i = 0; i < count; i++) rng(); // fast-forward
     rngCallCountRef.current = count;
     return () => {
       rngCallCountRef.current++;
-      console.log("count after for loop : " + rngCallCountRef.current)
+      // console.log("count after for loop : " + rngCallCountRef.current)
       return rng();
     };
   };
