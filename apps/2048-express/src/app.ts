@@ -9,23 +9,20 @@ import profileRoutes from './routes/profile';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { errorHandler } from './middlewares/errorHandler';
+import { requestLogger } from './middlewares/requestLogMiddleware';
 import MongoStore from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import { REFRESH_TOKEN_EXPIRY_MS } from './config/constants';
-import { requestLogger } from './middlewares/requestLogMiddleware';
-
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 8000;
 
 // backend app.ts
-app.use(
-    cors({
-      origin: process.env.FRONTEND_URL!,
-      credentials: true, // Allow cookies to be sent
-    })
-  );
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true,
+}));
 
 app.use(express.json());
 app.use(cookieParser());
@@ -38,27 +35,31 @@ app.use(session({
   cookie: {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    maxAge: REFRESH_TOKEN_EXPIRY_MS, // 1 week
+    maxAge: REFRESH_TOKEN_EXPIRY_MS,
   },
 }));
-
 
 app.use(passport.initialize());
 // app.use(passport.session());
 app.use(errorHandler);
 app.use(requestLogger);
 
+// ensure request logger runs before routes
+app.use(requestLogger);
 
-
-
+// register routes
 app.use('/auth', authRoutes);
 app.use('/scores', scoresRoutes);
 app.use('/profile', profileRoutes);
 
+// error handler last
+app.use(errorHandler);
+
 mongoose.connect(process.env.MONGO_URI!).then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-      });
+  const PORT = Number(process.env.PORT) || 8000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
 
-  
+

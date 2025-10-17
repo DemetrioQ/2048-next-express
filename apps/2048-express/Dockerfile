@@ -1,28 +1,46 @@
-FROM node:23-alpine
+# ---- builder ----
+FROM node:20-alpine AS builder
+WORKDIR /repo
 
+# enable pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-WORKDIR /app
+# copy root files needed for pnpm workspace install
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+# copy package.json for workspace members you need to resolve fast
+COPY apps/2048-express/package.json apps/2048-express/package.json
+COPY packages/shared-2048-logic/package.json packages/shared-2048-logic/package.json
 
-COPY pnpm-lock.yaml ./
-COPY pnpm-workspace.yaml ./
-COPY package.json ./
-
-
-
-COPY ./apps/2048-express /app/apps/2048-express
-COPY ./packages/shared-2048-logic /app/packages/shared-2048-logic
-
+# install all deps (dev + prod) to allow building TS
 RUN pnpm install --frozen-lockfile
 
-WORKDIR /app/apps/2048-express
+# copy full repo and build the backend package
+COPY . .
+RUN pnpm -w -C apps/2048-express run build
 
-ARG NODE_ENV=development
-ENV NODE_ENV=$NODE_ENV
+# ---- production image ----
+FROM node:20-alpine AS release
+WORKDIR /app
 
-RUN if [ "$NODE_ENV" = "production" ]; then pnpm build; fi
+# enable pnpm in final image
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
+# copy only what is needed for runtime
+COPY apps/2048-express/package.json apps/2048-express/package.json
+COPY pnpm-lock.yaml pnpm-lock.yaml
+
+# install only production deps
+RUN pnpm install --prod --frozen-lockfile
+
+# copy built output
+COPY --from=builder /repo/apps/2048-express/dist ./dist
+
+# create non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
+ENV NODE_ENV=production
 EXPOSE 8000
 
-# Default to development
-CMD ["pnpm", "dev"]
+# Render and other hosts set PORT; your app reads process.env.PORT
+CMD ["pnpm", "start"]
