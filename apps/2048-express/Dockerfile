@@ -29,7 +29,6 @@ COPY --from=builder /repo/apps/2048-express/package.json ./package.json
 
 # copy pnpm runtime artifacts so symlinks in node_modules resolve
 COPY --from=builder /repo/node_modules ./node_modules
-COPY --from=builder /repo/.pnpm-store /root/.pnpm-store   
 
 # create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
