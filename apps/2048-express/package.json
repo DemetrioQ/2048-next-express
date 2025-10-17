@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/apps/2048-express/src/app.js"
+    "start": "node -r module-alias/register dist/apps/2048-express/src/app.js"
   },
   "keywords": [],
   "author": "",
@@ -54,7 +54,8 @@
     "resend": "^4.5.1",
     "seedrandom": "^3.0.5",
     "tsconfig-paths": "^4.2.0",
-    "uploadthing": "^7.7.2"
+    "uploadthing": "^7.7.2",
+    "module-alias": "^2.2.2"
   },
   "devDependencies": {
     "@types/connect-mongo": "^3.1.6",
@@ -95,5 +96,9 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3",
     "uploadthing": "^7.7.2"
+  },
+  "_moduleAliases": {
+    "src": "dist/apps/2048-express/src",
+    "shared-2048-logic": "dist/packages/shared-2048-logic/src"
   }
 }
