@@ -11,7 +11,7 @@ COPY apps/2048-express/package.json apps/2048-express/package.json
 COPY packages/shared-2048-logic/package.json packages/shared-2048-logic/package.json
 
 # install deps (dev + prod) to build
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 # copy rest of repo and build backend
 COPY . .
