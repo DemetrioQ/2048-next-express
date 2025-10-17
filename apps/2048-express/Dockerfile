@@ -39,4 +39,4 @@ ENV NODE_ENV=production
 EXPOSE 8000
 
 # Use package start or node directly; adjust if your entry differs
-CMD ["node", "dist/app.js"]
+CMD ["node", "dist/apps/2048-express/src/app.js"]
