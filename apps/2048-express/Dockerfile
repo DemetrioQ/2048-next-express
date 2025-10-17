@@ -15,7 +15,7 @@ RUN pnpm install --frozen-lockfile
 
 # copy rest of repo and build backend
 COPY . .
-RUN pnpm -w -C apps/2048-express run build
+RUN pnpm -C apps/2048-express run build
 
 # remove dev deps to keep node_modules production-only
 RUN pnpm prune --prod
