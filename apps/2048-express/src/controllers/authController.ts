@@ -155,7 +155,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
                 maxAge: REFRESH_TOKEN_EXPIRY_MS,
             })
             .status(200)
-            .json({ message: 'Logged in successfully', publicUser});
+            .json({ message: 'Logged in successfully', user: publicUser});
 
     })(req, res, next);
 }
