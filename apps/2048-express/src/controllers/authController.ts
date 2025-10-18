@@ -158,21 +158,21 @@ export const handleOAuthCallback = async (req: Request, res: Response) => {
 
     res.cookie('refresh_token', refreshToken, baseCookieOptionsRefreshToken);
 
-    res.redirect(`${process.env.FRONTEND_URL}/oauth/success`);
-    //     res.send(`
-    //     <html>
-    //       <body>
-    //         <script>
-    //           if (window.opener) {
-    //             window.opener.postMessage({ type: 'oauth-success' }, '*');
-    //             window.close();
-    //           } else {
-    //             window.location.href = '${process.env.FRONTEND_URL}';
-    //           }
-    //         </script>
-    //       </body>
-    //     </html>
-    //   `);
+    // res.redirect(`${process.env.FRONTEND_URL}/oauth/success`);
+        res.send(`
+        <html>
+          <body>
+            <script>
+              if (window.opener) {
+                window.opener.postMessage({ type: 'oauth-success' }, '*');
+                window.close();
+              } else {
+                window.location.href = '${process.env.FRONTEND_URL}';
+              }
+            </script>
+          </body>
+        </html>
+      `);
 };
 
 export const logout = async (req: Request, res: Response) => {
