@@ -33,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const login = async (credentials: { email: string; password: string }) => {
         const response = await loginUser(credentials);
-        setUser(response.user); // Optional: set user immediately
+        setUser(response.user); 
     };
 
 

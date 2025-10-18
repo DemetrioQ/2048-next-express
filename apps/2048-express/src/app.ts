@@ -36,6 +36,7 @@ app.use(session({
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: REFRESH_TOKEN_EXPIRY_MS,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   },
 }));
 
