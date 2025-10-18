@@ -20,7 +20,7 @@ const PORT = Number(process.env.PORT) || 8000;
 
 // backend app.ts
 app.use(cors({
-  origin: (process.env.FRONTEND_URL, process.env.CORS_ORIGIN) || '*',
+  origin: process.env.FRONTEND_URL,
   credentials: true,
 }));
 
