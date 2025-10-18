@@ -34,9 +34,20 @@ COPY --from=builder /repo/packages/shared-2048-logic/dist ./dist/packages/shared
 # copy package.json and the app-local production node_modules
 COPY --from=builder /repo/apps/2048-express/package.json ./package.json
 COPY --from=builder /repo/apps/2048-express/node_modules ./node_modules
-
-# also copy workspace root node_modules so PNPM symlinks resolve
 COPY --from=builder /repo/node_modules /node_modules
+
+# create module-name mappings so runtime require('src/...') and
+# require('shared-2048-logic/...') resolve to the compiled JS
+RUN mkdir -p /app/node_modules \
+ && if [ -d "/app/dist/apps/2048-express/apps/2048-express/src" ]; then \
+      ln -s /app/dist/apps/2048-express/apps/2048-express/src /app/node_modules/src; \
+    elif [ -d "/app/dist/apps/2048-express/src" ]; then \
+      ln -s /app/dist/apps/2048-express/src /app/node_modules/src; \
+    else \
+      echo "warning: compiled src folder not found; check build output"; \
+    fi \
+ && mkdir -p /app/node_modules/shared-2048-logic \
+ && cp -r /app/dist/packages/shared-2048-logic/* /app/node_modules/shared-2048-logic/
 
 # drop to non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
@@ -45,5 +56,4 @@ USER appuser
 ENV NODE_ENV=production
 EXPOSE 8000
 
-# start the compiled app (adjust path if your compiled entry differs)
 CMD ["node", "dist/apps/2048-express/apps/2048-express/src/app.js"]

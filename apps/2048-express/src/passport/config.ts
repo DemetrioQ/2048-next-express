@@ -7,6 +7,7 @@ import User from '../models/User';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
 passport.use(
   new LocalStrategy(
     { usernameField: 'email' },
@@ -30,15 +31,16 @@ passport.use(
   )
 );
 
-
-passport.use(
-  new GoogleStrategy(
+// Google Strategy
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  const GoogleStrategy = require("passport-google-oauth20").Strategy;
+  passport.use(new GoogleStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: '/auth/google/callback',
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: `${process.env.FRONTEND_URL}/auth/google/callback`
     },
-    async (_accessToken, _refreshToken, profile, done) => {
+    async (accessToken: any, refreshToken: any, profile: any, done: any) => {
       try {
         const email = profile.emails?.[0]?.value;
         if (!email) return done(new Error("No email from Google"));
@@ -74,19 +76,22 @@ passport.use(
         done(err);
       }
     }
-  )
-);
+  ));
+} else {
+  // eslint-disable-next-line no-console
+  console.warn("Google OAuth not configured: missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET");
+}
 
 // GitHub Strategy
-passport.use(
-  new GitHubStrategy(
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  const GitHubStrategy = require("passport-github2").Strategy;
+  passport.use(new GitHubStrategy(
     {
-      clientID: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      callbackURL: '/auth/github/callback',
-      scope: ['user:email'],
+      clientID: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL: `${process.env.FRONTEND_URL}/auth/github/callback`
     },
-    async (_accessToken: string | undefined, _refreshToken: string | undefined, profile: GitHubProfile, done: (err: any, user?: any) => void) => {
+    async (accessToken: any, refreshToken: any, profile: any, done: any) => {
       try {
         const email = profile.emails?.[0]?.value;
         if (!email) return done(new Error("No email from Github"));
@@ -120,8 +125,11 @@ passport.use(
         done(err);
       }
     }
-  )
-);
+  ));
+} else {
+  // eslint-disable-next-line no-console
+  console.warn("GitHub OAuth not configured: missing GITHUB_CLIENT_ID or GITHUB_CLIENT_SECRET");
+}
 
 passport.serializeUser((user: any, done) => {
   done(null, user.id);
@@ -135,6 +143,5 @@ passport.deserializeUser(async (id, done) => {
     done(err);
   }
 });
-
 
 export default passport;
