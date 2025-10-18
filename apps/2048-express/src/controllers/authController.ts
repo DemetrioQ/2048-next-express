@@ -159,6 +159,7 @@ export const handleOAuthCallback = async (req: Request, res: Response) => {
     res.cookie('refresh_token', refreshToken, baseCookieOptionsRefreshToken);
 
     res.redirect(`${process.env.FRONTEND_URL}/oauth/success`);
+    
     //     res.send(`
     //     <html>
     //       <body>

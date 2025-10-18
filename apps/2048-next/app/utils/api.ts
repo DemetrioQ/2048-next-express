@@ -86,7 +86,7 @@ export const loginWithOAuth = (
           console.log(err);
           onError?.();
         }
-      }, 100); // 50–100ms is usually enough
+      }, 150); // 50–100ms is usually enough
     }
 
     if (event.data?.type === 'oauth-error') {
