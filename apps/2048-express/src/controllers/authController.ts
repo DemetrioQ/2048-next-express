@@ -132,11 +132,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
             userAgent: req.headers['user-agent'],
             ipAddress: req.ip,
         });
-       const publicUser : PublicUser = user.toPublic() 
+        const publicUser: PublicUser = user.toPublic()
         res.cookie('access_token', accessToken, baseCookieOptionsAccessToken)
             .cookie('refresh_token', refreshToken, baseCookieOptionsRefreshToken)
             .status(200)
-            .json({ message: 'Logged in successfully', user: publicUser});
+            .json({ message: 'Logged in successfully', user: publicUser });
 
     })(req, res, next);
 }
@@ -177,8 +177,16 @@ export const handleOAuthCallback = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
     const token = req.cookies.refresh_token;
-    res.clearCookie('access_token', { path: '/' });
-    res.clearCookie('refresh_token', { path: '/' });
+    res.clearCookie('access_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    });
+    res.clearCookie('refresh_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+    });
     if (token) {
         try {
             // const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as { id: string };
