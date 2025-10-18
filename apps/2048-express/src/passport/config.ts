@@ -13,7 +13,6 @@ passport.use(
     { usernameField: 'email' },
     async (email, password, done) => {
       try {
-        console.log("local")
         const user = await User.findOne({ email });
         if (!user) {
           return done(null, false, { message: 'Incorrect email.' });

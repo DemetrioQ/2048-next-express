@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { ACCESS_TOKEN_EXPIRY_MS, REFRESH_TOKEN_EXPIRY_MS } from 'src/config/constants';
 import RefreshToken from 'src/models/RefreshToken';
@@ -7,6 +7,8 @@ import { generateTokens } from 'src/utils/token';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
 import sendEmail from 'src/utils/sendEmail';
+import passport from 'passport';
+import { PublicUser } from 'shared-2048-logic/types/User';
 
 export const getMe = async (req: Request, res: Response) => {
     const user = req.user as IUser;
@@ -19,7 +21,7 @@ export const getMe = async (req: Request, res: Response) => {
 
 
 export const refresh = async (req: Request, res: Response) => {
-    
+
     const token = req.cookies.refresh_token;
     if (!token) {
         res.sendStatus(401);
@@ -91,7 +93,7 @@ export const register = async (req: Request, res: Response) => {
             email: email,
             username: normalizedUsername,
             password: hashedPassword,
-            avatar:{
+            avatar: {
                 imageUrl: process.env.DEFAULT_AVATAR_IMAGE_URL
             },
             verified: false,
@@ -124,34 +126,38 @@ export const register = async (req: Request, res: Response) => {
     }
 }
 
-export const login = async (req: Request, res: Response) => {
-    if (!req.user) return res.redirect('/login?error=oauth');
-    const user = req.user as IUser;
-    const { accessToken, refreshToken } = generateTokens(user);
+export const login = async (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate('local', async (err: unknown, user: IUser, info: { message: string }) => {
+        if (err) return next(err);
+        const { accessToken, refreshToken } = generateTokens(user);
 
-    await RefreshToken.create({
-        userId: user._id,
-        token: refreshToken,
-        expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
-        userAgent: req.headers['user-agent'],
-        ipAddress: req.ip,
-    });
+        if (!user) {
+            return res.status(401).json({ error: info?.message || 'Login failed' });
+        }
+        await RefreshToken.create({
+            userId: user._id,
+            token: refreshToken,
+            expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
+            userAgent: req.headers['user-agent'],
+            ipAddress: req.ip,
+        });
+       const publicUser : PublicUser = user.toPublic() 
+        res.cookie('access_token', accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: ACCESS_TOKEN_EXPIRY_MS,
+            })
+            .cookie('refresh_token', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: REFRESH_TOKEN_EXPIRY_MS,
+            })
+            .status(200)
+            .json({ message: 'Logged in successfully', publicUser});
 
-    res
-        .cookie('access_token', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: ACCESS_TOKEN_EXPIRY_MS,
-        })
-        .cookie('refresh_token', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: REFRESH_TOKEN_EXPIRY_MS,
-        })
-        .status(200)
-        .json({ message: 'Logged in successfully', user });
+    })(req, res, next);
 }
 
 export const handleOAuthCallback = async (req: Request, res: Response) => {

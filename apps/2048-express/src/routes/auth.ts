@@ -11,7 +11,7 @@ router.post('/refresh', refresh);
 
 router.post('/register', register);
 
-router.post('/login', passport.authenticate('local'), login);
+router.post('/login',  login);
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_URL}/oauth/failure` }), handleOAuthCallback);
