@@ -46,7 +46,7 @@ export default function CropUploadModal({
     });
 
     const getFileName = (): string => {
-        let fileName = `avatar-${user?.id}.jpg`
+        const fileName = `avatar-${user?.id}.jpg`
         return fileName;
     }
 

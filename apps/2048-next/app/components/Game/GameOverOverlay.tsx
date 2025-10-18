@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ResendVerificationButton } from '../Profile/ResendVerificationButton';
 import { useAuth } from '@/context/AuthContext';

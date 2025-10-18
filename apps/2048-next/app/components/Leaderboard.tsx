@@ -25,6 +25,8 @@ const Leaderboard = () => {
       return;
     }
 
+    console.log(score);
+
     // Proceed with score submission...
     // Make an API call to submit the score
   };

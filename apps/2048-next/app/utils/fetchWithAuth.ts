@@ -24,7 +24,7 @@ export async function fetchWithAuth(
     });
   };
 
-  let res = await doFetch();
+  const res = await doFetch();
 
   if (res.status !== 401 || init?._retry) {
     return res;

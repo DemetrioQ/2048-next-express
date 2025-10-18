@@ -36,6 +36,7 @@ export default function AvatarSection() {
                 setOpen={setModalOpen}
                 onComplete={async (url, fileKey) => {
                     //call update avatar url
+                    console.log(url, fileKey);
                     await refreshUser?.();
                 }}
             />

@@ -46,6 +46,7 @@ export default function UsernamePrompt() {
         setError(res.message || 'Username not available');
       }
     } catch (err) {
+      console.log(err)
       setError('Something went wrong');
     } finally {
       setSubmitting(false);

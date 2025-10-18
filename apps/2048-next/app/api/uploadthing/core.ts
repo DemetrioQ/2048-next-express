@@ -5,7 +5,7 @@ const f = createUploadthing();
 
 export const ourFileRouter = {
   avatarUploader: f({ image: { maxFileSize: "2MB" } })
-    .onUploadComplete(({ file, metadata }) => {
+    .onUploadComplete(({ file }) => {
       // Save to DB if needed
       console.log("Upload complete:", file.ufsUrl);
     }),
