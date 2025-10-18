@@ -9,7 +9,7 @@ import { randomUUID } from 'crypto';
 import sendEmail from 'src/utils/sendEmail';
 import passport from 'passport';
 import { PublicUser } from 'shared-2048-logic/types/User';
-import { baseCookieOptions } from 'src/config/cookies';
+import { baseCookieOptionsAccessToken, baseCookieOptionsRefreshToken } from 'src/config/cookies';
 
 export const getMe = async (req: Request, res: Response) => {
     const user = req.user as IUser;
@@ -57,8 +57,8 @@ export const refresh = async (req: Request, res: Response) => {
         });
 
         res
-            .cookie('access_token', accessToken, baseCookieOptions)
-            .cookie('refresh_token', refreshToken, baseCookieOptions)
+            .cookie('access_token', accessToken, baseCookieOptionsAccessToken)
+            .cookie('refresh_token', refreshToken, baseCookieOptionsRefreshToken)
             .json({ message: 'Tokens refreshed' });
     } catch (err) {
         res.sendStatus(403);
@@ -133,8 +133,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
             ipAddress: req.ip,
         });
        const publicUser : PublicUser = user.toPublic() 
-        res.cookie('access_token', accessToken, baseCookieOptions)
-            .cookie('refresh_token', refreshToken, baseCookieOptions)
+        res.cookie('access_token', accessToken, baseCookieOptionsAccessToken)
+            .cookie('refresh_token', refreshToken, baseCookieOptionsRefreshToken)
             .status(200)
             .json({ message: 'Logged in successfully', user: publicUser});
 
@@ -154,9 +154,9 @@ export const handleOAuthCallback = async (req: Request, res: Response) => {
         ipAddress: req.ip,
     });
 
-    res.cookie('access_token', accessToken, baseCookieOptions);
+    res.cookie('access_token', accessToken, baseCookieOptionsAccessToken);
 
-    res.cookie('refresh_token', refreshToken, baseCookieOptions);
+    res.cookie('refresh_token', refreshToken, baseCookieOptionsRefreshToken);
 
     res.redirect(`${process.env.FRONTEND_URL}/oauth/success`);
     //     res.send(`
