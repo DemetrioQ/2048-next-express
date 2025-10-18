@@ -13,14 +13,18 @@ passport.use(
     { usernameField: 'email' },
     async (email, password, done) => {
       try {
-
+        console.log("local")
         const user = await User.findOne({ email });
-        if (!user) return done(null, false, { message: 'Incorrect email.' });
+        if (!user) {
+          return done(null, false, { message: 'Incorrect email.' });
+        }
 
-        if(!user.password) return
+        if (!user.password) {
+          return done(null, false, { message: 'No local password set. Please log in with OAuth.' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
 
-        console.log(isMatch)
         if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
 
         return done(null, user);
@@ -33,14 +37,14 @@ passport.use(
 
 // Google Strategy
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  const GoogleStrategy = require("passport-google-oauth20").Strategy;
   passport.use(new GoogleStrategy(
+
     {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.FRONTEND_URL}/auth/google/callback`
+      clientID: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      callbackURL: '/auth/google/callback',
     },
-    async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+    async (_accessToken, _refreshToken, profile, done) => {
       try {
         const email = profile.emails?.[0]?.value;
         if (!email) return done(new Error("No email from Google"));
@@ -56,7 +60,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           // Update profile image if available and different
           const photo = profile.photos?.[0]?.value;
 
-          if(!user.avatar) user.avatar = {};
+          if (!user.avatar) user.avatar = {};
           if (photo && !user.avatar.imageUrl) {
             user.avatar.imageUrl = photo;
           }
@@ -84,14 +88,14 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
 // GitHub Strategy
 if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
-  const GitHubStrategy = require("passport-github2").Strategy;
   passport.use(new GitHubStrategy(
     {
-      clientID: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: `${process.env.FRONTEND_URL}/auth/github/callback`
+      clientID: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      callbackURL: '/auth/github/callback',
+      scope: ['user:email'],
     },
-    async (accessToken: any, refreshToken: any, profile: any, done: any) => {
+    async (_accessToken: string | undefined, _refreshToken: string | undefined, profile: GitHubProfile, done: (err: any, user?: any) => void) => {
       try {
         const email = profile.emails?.[0]?.value;
         if (!email) return done(new Error("No email from Github"));
@@ -105,8 +109,8 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
           if (!user.oauth.githubId) user.oauth.githubId = profile.id;
 
           const photo = profile.photos?.[0]?.value;
-          
-          if(!user.avatar) user.avatar = {};
+
+          if (!user.avatar) user.avatar = {};
           if (photo && !user.avatar.imageUrl) {
             user.avatar.imageUrl = photo;
           }

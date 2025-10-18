@@ -42,7 +42,6 @@ app.use(session({
 app.use(passport.initialize());
 // app.use(passport.session());
 app.use(errorHandler);
-app.use(requestLogger);
 
 // ensure request logger runs before routes
 app.use(requestLogger);
