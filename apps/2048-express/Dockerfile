@@ -20,7 +20,7 @@ RUN pnpm --filter 2048-express build
 
 # pnpm deploy produces a self-contained directory with fully resolved,
 # non-symlinked production node_modules — safe to COPY across Docker stages
-RUN pnpm deploy --filter=2048-express --prod /prod/express
+RUN pnpm deploy --filter=2048-express --prod --legacy /prod/express
 
 # ---- runtime ----
 FROM node:20-alpine AS release
