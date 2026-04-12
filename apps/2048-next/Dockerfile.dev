@@ -1,24 +1,21 @@
-FROM node:23-alpine
+FROM node:20-alpine
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-COPY ../../pnpm-lock.yaml ./
-COPY ../../pnpm-workspace.yaml ./
-COPY ../../package.json ./
-
-COPY ../../apps/2048-next  /app/apps/2048-next
-COPY ../../packages/shared-2048-logic /app/packages/shared-2048-logic
+# Build context is the repo root — paths are relative to that
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/2048-next/package.json apps/2048-next/package.json
+COPY packages/shared-2048-logic/package.json packages/shared-2048-logic/package.json
 
 RUN pnpm install --frozen-lockfile
 
-WORKDIR /app/apps/2048-next
-# Build only in production mode
-ARG NODE_ENV=development
-ENV NODE_ENV=$NODE_ENV
+# Copy sources (docker compose watch will keep these in sync)
+COPY packages/shared-2048-logic packages/shared-2048-logic
+COPY apps/2048-next apps/2048-next
 
-RUN if [ "$NODE_ENV" = "production" ]; then pnpm build; fi
+WORKDIR /app/apps/2048-next
 
 EXPOSE 3000
 

@@ -65,8 +65,13 @@ export const useGame = () => {
     if (savedScore) setBestScore(Number(savedScore));
   }
 
+  const disableUndos = () => {
+    setUndosLeft(0);
+  };
+
   const resetGame = () => {
-    localStorage.setItem("gameState", '{}')
+    localStorage.setItem("gameState", '{}');
+    localStorage.removeItem('moveHistory');
     const [seed, rng] = generateSeed();
     setSeed(seed)
     setMoves(0);
@@ -278,6 +283,7 @@ useEffect(() => {
     seed,
     handleUndo,
     undosLeft,
-    resetGame
+    resetGame,
+    disableUndos,
   };
 };

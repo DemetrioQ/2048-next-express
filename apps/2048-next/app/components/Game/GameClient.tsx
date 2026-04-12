@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
 
 export default function GameClient() {
-    const { tiles, score, bestScore, gameOver, moves, seed, moveHistory, undosLeft, handleUndo, resetGame } = useGame();
+    const { tiles, score, bestScore, gameOver, moves, seed, moveHistory, undosLeft, handleUndo, resetGame, disableUndos } = useGame();
     const { user, loading } = useAuth();
 
     const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -27,7 +27,7 @@ export default function GameClient() {
     if (showLogin && !loading && !user) {
       setLoginModalOpen(true);
     }
-  }, [showLogin]);
+  }, [showLogin, loading]);
 
     const handleGameReset = () => {
         setScoreSubmitted(false);
@@ -54,6 +54,7 @@ export default function GameClient() {
 
             if (res.ok) {
                 setScoreSubmitted(true);
+                disableUndos();
                 toast.success('Score submitted!');
             } else {
                 switch (data.error) {
