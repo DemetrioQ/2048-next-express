@@ -18,25 +18,26 @@ COPY apps/2048-express apps/2048-express
 RUN pnpm --filter shared-2048-logic build
 RUN pnpm --filter 2048-express build
 
-# Produce a flat, production-only node_modules for the express app
-RUN pnpm -C apps/2048-express install --prod --no-frozen-lockfile --prefer-offline --shamefully-hoist
+# pnpm deploy produces a self-contained directory with fully resolved,
+# non-symlinked production node_modules — safe to COPY across Docker stages
+RUN pnpm deploy --filter=2048-express --prod /prod/express
 
 # ---- runtime ----
 FROM node:20-alpine AS release
 WORKDIR /app
 
-# Production node_modules (flat/hoisted, no devDeps)
-COPY --from=builder /repo/apps/2048-express/node_modules ./node_modules
-COPY --from=builder /repo/node_modules ./node_modules
+# Clean production node_modules (no pnpm virtual store, no broken symlinks)
+COPY --from=builder /prod/express/node_modules ./node_modules
 
-# Compiled output (TypeScript compiles with monorepo rootDir, so dist mirrors the repo layout)
+# Compiled output (TypeScript rootDir spans monorepo, so dist mirrors repo layout)
 COPY --from=builder /repo/apps/2048-express/dist ./dist
+
+# Compiled shared package
 COPY --from=builder /repo/packages/shared-2048-logic/dist ./shared-logic-dist
 
 # Runtime path alias: require('src/...') → compiled src files
-# The TypeScript path alias 'src/*' is not transformed by tsc — we wire it via node_modules
-RUN mkdir -p /app/node_modules \
- && ln -s /app/dist/apps/2048-express/src /app/node_modules/src
+# tsc does not transform path aliases, so we wire them via node_modules
+RUN ln -s /app/dist/apps/2048-express/src /app/node_modules/src
 
 # Runtime path alias: require('shared-2048-logic/...') → compiled shared package
 RUN mkdir -p /app/node_modules/shared-2048-logic \
@@ -48,5 +49,4 @@ USER appuser
 ENV NODE_ENV=production
 EXPOSE 8000
 
-# dist/apps/2048-express/src/app.js — TypeScript rootDir inferred as repo root
 CMD ["node", "dist/apps/2048-express/src/app.js"]
