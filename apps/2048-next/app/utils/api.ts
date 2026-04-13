@@ -63,39 +63,25 @@ export const loginWithOAuth = (
     return;
   }
 
-  let messageReceived = false;
+  let resolved = false;
+  const channel = new BroadcastChannel('oauth');
 
-  const handleMessage = async (event: MessageEvent) => {
-    const expectedOrigin = (process.env.NEXT_PUBLIC_BACKEND_URL ?? '').replace(/\/$/, '');
-    console.log('[OAuth] message received from origin:', event.origin, '| expected:', expectedOrigin);
-    if (event.origin !== expectedOrigin) return;
+  channel.onmessage = (event) => {
+    resolved = true;
+    channel.close();
+    clearInterval(checkClosed);
 
-    console.log(event.data?.type);
-    if (event.data?.type === 'oauth-success') {
-      messageReceived = true;
-      window.removeEventListener('message', handleMessage);
-      const user = event.data.user;
-      if (user) {
-        onSuccess?.(user);
-      } else {
-        onError?.();
-      }
-    }
-
-    if (event.data?.type === 'oauth-error') {
-      console.log("Error")
-      messageReceived = true;
-      window.removeEventListener('message', handleMessage);
+    if (event.data?.type === 'oauth-success' && event.data.user) {
+      onSuccess?.(event.data.user);
+    } else {
       onError?.();
     }
   };
 
-  window.addEventListener('message', handleMessage);
-
   const checkClosed = setInterval(() => {
-    if (popup.closed && !messageReceived) {
+    if (popup.closed && !resolved) {
       clearInterval(checkClosed);
-      window.removeEventListener('message', handleMessage);
+      channel.close();
       onError?.();
     }
   }, 500);

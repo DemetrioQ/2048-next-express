@@ -1,16 +1,13 @@
-import { Resend } from 'resend';
+import * as Brevo from '@getbrevo/brevo';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const client = new Brevo.TransactionalEmailsApi();
+client.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY!);
 
 export default async function sendEmail(to: string, subject: string, html: string) {
-  const { error } = await resend.emails.send({
-    from: '2048 App <onboarding@resend.dev>',
-    to,
+  await client.sendTransacEmail({
+    sender: { name: '2048 App', email: process.env.EMAIL_FROM! },
+    to: [{ email: to }],
     subject,
-    html,
+    htmlContent: html,
   });
-
-  if (error) {
-    throw new Error(error.message);
-  }
 }

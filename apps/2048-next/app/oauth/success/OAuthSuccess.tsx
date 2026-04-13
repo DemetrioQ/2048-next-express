@@ -1,20 +1,27 @@
 'use client';
 
 import { useEffect } from 'react';
+import { getMe } from '@/utils/api';
 
 export default function OAuthSuccess() {
   useEffect(() => {
-     const timer = setTimeout(() => {
-      if (window.opener) {
-        window.opener.postMessage({ type: 'oauth-success' }, window.location.origin);
+    const channel = new BroadcastChannel('oauth');
+
+    getMe()
+      .then((data) => {
+        if (data?.user) {
+          channel.postMessage({ type: 'oauth-success', user: data.user });
+        } else {
+          channel.postMessage({ type: 'oauth-error' });
+        }
+      })
+      .catch(() => {
+        channel.postMessage({ type: 'oauth-error' });
+      })
+      .finally(() => {
+        channel.close();
         window.close();
-      }
-    }, 500); 
-
-    // window.opener?.postMessage({ type: 'oauth-success' }, process.env.NEXT_PUBLIC_FRONTEND_URL!);
-    // window.close();
-
-        return () => clearTimeout(timer);
+      });
   }, []);
 
   return <p>Logging in…</p>;
