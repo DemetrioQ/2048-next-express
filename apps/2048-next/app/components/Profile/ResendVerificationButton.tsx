@@ -29,11 +29,7 @@ export const ResendVerificationButton = () => {
   const handleResend = async () => {
     setLoading(true);
     try {
-      const res = await resendEmailVerification();
-      if(!res.ok) {
-        const text = await res.text();
-        throw new Error(text || 'Failed to resend verification email.');
-      }
+      await resendEmailVerification();
       toast.success('Verification email sent!');
       localStorage.setItem('lastVerificationEmailSent', Date.now().toString());
       setCooldown(COOLDOWN_SECONDS);

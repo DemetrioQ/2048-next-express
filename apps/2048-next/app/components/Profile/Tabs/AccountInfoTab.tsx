@@ -1,6 +1,7 @@
 // AccountInfoTab.tsx
 import { useAuth } from '@/context/AuthContext';
 import UsernamePrompt from '../UsernameModal';
+import { ResendVerificationButton } from '../ResendVerificationButton';
 
 export default function AccountInfoTab() {
     const { user } = useAuth();
@@ -13,7 +14,18 @@ export default function AccountInfoTab() {
             <p className="mb-4">{user?.username}</p>
 
             <h2 className="text-lg font-semibold mb-2">Email</h2>
-            <p className="mb-4">{user?.email}</p>
+            <p className="mb-1">{user?.email}</p>
+
+            {user && !user.isVerified && (
+                <div className="mb-4 mt-2 p-3 rounded-md border border-yellow-400 bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-600 dark:text-yellow-300">
+                    <p className="text-sm font-medium mb-2">Your email is not verified. Please check your inbox or resend the verification email.</p>
+                    <ResendVerificationButton />
+                </div>
+            )}
+
+            {user?.isVerified && (
+                <p className="mb-4 text-sm text-green-600 dark:text-green-400">Email verified</p>
+            )}
 
             <button className="mt-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">
                 Edit Profile (coming soon)

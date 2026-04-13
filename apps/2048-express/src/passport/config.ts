@@ -45,7 +45,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     },
     async (_accessToken, _refreshToken, profile, done) => {
       try {
+        console.log('[Passport] Google strategy called, profile id:', profile.id);
         const email = profile.emails?.[0]?.value;
+        console.log('[Passport] Google email:', email);
         if (!email) return done(new Error("No email from Google"));
 
         let user = await User.findOne({
@@ -96,7 +98,9 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
     },
     async (_accessToken: string | undefined, _refreshToken: string | undefined, profile: GitHubProfile, done: (err: any, user?: any) => void) => {
       try {
+        console.log('[Passport] GitHub strategy called, profile id:', profile.id);
         const email = profile.emails?.[0]?.value;
+        console.log('[Passport] GitHub email:', email);
         if (!email) return done(new Error("No email from Github"));
 
         let user = await User.findOne({

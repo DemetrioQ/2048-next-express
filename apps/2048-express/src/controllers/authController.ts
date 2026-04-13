@@ -142,7 +142,12 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 }
 
 export const handleOAuthCallback = async (req: Request, res: Response) => {
-    if (!req.user) return res.redirect('/login?error=oauth');
+    console.log('[OAuth] handleOAuthCallback called, req.user:', req.user ? (req.user as IUser)._id : 'null');
+    console.log('[OAuth] FRONTEND_URL env:', process.env.FRONTEND_URL);
+    if (!req.user) {
+        console.warn('[OAuth] No req.user in handleOAuthCallback — redirecting to failure');
+        return res.redirect('/login?error=oauth');
+    }
     const user = req.user as IUser;
     const { accessToken, refreshToken } = generateTokens(user);
 
