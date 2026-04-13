@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Loader } from 'lucide-react';
 import { verifyEmail } from '@/utils/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function InnerVerifyEmailPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -11,6 +12,7 @@ export default function InnerVerifyEmailPage() {
   const [countdown, setCountdown] = useState(5);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user, refreshUser } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -31,6 +33,7 @@ export default function InnerVerifyEmailPage() {
         } else {
           setStatus('success');
           setMessage(text || 'Email verified successfully!');
+          refreshUser();
         }
       } catch {
         setStatus('error');
@@ -47,7 +50,7 @@ export default function InnerVerifyEmailPage() {
         setCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(interval);
-            router.push('/?showLogin=true');
+            router.push(user ? '/profile' : '/?showLogin=true');
             return 0;
           }
           return prev - 1;
@@ -55,7 +58,7 @@ export default function InnerVerifyEmailPage() {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [status, router]);
+  }, [status, router, user]);
 
   return (
     <div className="max-w-md mx-auto mt-20 text-center p-6 border rounded shadow">
@@ -70,7 +73,7 @@ export default function InnerVerifyEmailPage() {
           <h1 className="text-xl font-semibold mb-2 text-green-600">✅ Email Verified</h1>
           <p className="mb-2">{message}</p>
           <p className="text-sm text-gray-500">
-            Redirecting to login in {countdown} seconds...
+            Redirecting in {countdown} seconds...
           </p>
         </>
       )}
