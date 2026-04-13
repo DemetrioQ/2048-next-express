@@ -66,8 +66,9 @@ export const loginWithOAuth = (
   let messageReceived = false;
 
   const handleMessage = async (event: MessageEvent) => {
-    console.log(event.origin);
-    if (event.origin !== process.env.NEXT_PUBLIC_BACKEND_URL) return;
+    const expectedOrigin = (process.env.NEXT_PUBLIC_BACKEND_URL ?? '').replace(/\/$/, '');
+    console.log('[OAuth] message received from origin:', event.origin, '| expected:', expectedOrigin);
+    if (event.origin !== expectedOrigin) return;
 
     console.log(event.data?.type);
     if (event.data?.type === 'oauth-success') {
