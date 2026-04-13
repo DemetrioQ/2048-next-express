@@ -18,6 +18,8 @@ dotenv.config();
 const app = express();
 const PORT = Number(process.env.PORT) || 8000;
 
+app.set('trust proxy', 1);
+
 // backend app.ts
 app.use(cors({
   origin: process.env.FRONTEND_URL,
