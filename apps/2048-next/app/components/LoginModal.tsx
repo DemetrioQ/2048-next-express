@@ -26,7 +26,7 @@ export default function LoginModal({ open, onClose }: { open: boolean; onClose: 
         onClose,
         () => toast.success(`Logged in with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`)
       );
-    } catch (error) {
+    } catch {
       toast.error(`Failed to login with ${provider}`);
     }
   };
