@@ -159,13 +159,48 @@ export const handleOAuthCallback = async (req: Request, res: Response) => {
         ipAddress: req.ip,
     });
 
-    res.cookie('access_token', accessToken, baseCookieOptionsAccessToken);
+    // Short-lived passthrough token (60s) carried in the URL hash — never sent to any server.
+    // The main window exchanges it for real cookies via /auth/oauth-complete, the same way
+    // credential login works, avoiding cross-site popup cookie issues entirely.
+    const passthroughToken = jwt.sign(
+        { type: 'oauth_passthrough', accessToken, refreshToken },
+        process.env.JWT_ACCESS_SECRET!,
+        { expiresIn: '60s' }
+    );
 
-    res.cookie('refresh_token', refreshToken, baseCookieOptionsRefreshToken);
+    res.redirect(`${process.env.FRONTEND_URL}/oauth/success#${passthroughToken}`);
+};
 
-    // res.redirect(`${process.env.FRONTEND_URL}/oauth/success`);
-
-    res.redirect(`${process.env.FRONTEND_URL}/oauth/success`);
+export const oauthComplete = async (req: Request, res: Response) => {
+    const { token } = req.body;
+    if (!token) {
+        res.status(400).json({ message: 'Missing token' });
+        return;
+    }
+    try {
+        const payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as {
+            type: string;
+            accessToken: string;
+            refreshToken: string;
+        };
+        if (payload.type !== 'oauth_passthrough') {
+            res.status(400).json({ message: 'Invalid token type' });
+            return;
+        }
+        const accessPayload = jwt.verify(payload.accessToken, process.env.JWT_ACCESS_SECRET!) as { id: string };
+        const user = await User.findById(accessPayload.id);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        res
+            .cookie('access_token', payload.accessToken, baseCookieOptionsAccessToken)
+            .cookie('refresh_token', payload.refreshToken, baseCookieOptionsRefreshToken)
+            .status(200)
+            .json({ user: user.toPublic() });
+    } catch {
+        res.status(401).json({ message: 'Invalid or expired token' });
+    }
 };
 
 export const logout = async (req: Request, res: Response) => {

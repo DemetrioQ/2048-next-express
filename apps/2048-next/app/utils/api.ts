@@ -42,6 +42,21 @@ export async function refreshToken(): Promise<boolean> {
   }
 }
 
+export async function oauthComplete(token: string): Promise<{ user: PublicUser } | null> {
+  try {
+    const res = await fetch(`${backendUrl}/auth/oauth-complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ token }),
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
 export const loginWithOAuth = (
   provider: 'google' | 'github',
   onSuccess?: (user: PublicUser) => void,
@@ -66,13 +81,18 @@ export const loginWithOAuth = (
   let resolved = false;
   const channel = new BroadcastChannel('oauth');
 
-  channel.onmessage = (event) => {
+  channel.onmessage = async (event) => {
     resolved = true;
     channel.close();
     clearInterval(checkClosed);
 
-    if (event.data?.type === 'oauth-success' && event.data.user) {
-      onSuccess?.(event.data.user);
+    if (event.data?.type === 'oauth-token' && event.data.token) {
+      const result = await oauthComplete(event.data.token);
+      if (result?.user) {
+        onSuccess?.(result.user);
+      } else {
+        onError?.();
+      }
     } else {
       onError?.();
     }

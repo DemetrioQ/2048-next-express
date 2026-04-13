@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import passport from 'passport';
 import { authMiddleware } from 'src/middlewares/authMiddleware';
-import { getMe, handleOAuthCallback, login, logout, refresh, register } from 'src/controllers/authController';
+import { getMe, handleOAuthCallback, login, logout, oauthComplete, refresh, register } from 'src/controllers/authController';
 
 const router = Router();
 
@@ -61,6 +61,7 @@ router.get('/github/callback', (req, res, next) => {
   })(req, res, next);
 });
 
+router.post('/oauth-complete', oauthComplete);
 router.post('/logout', authMiddleware, logout);
 
 export default router;

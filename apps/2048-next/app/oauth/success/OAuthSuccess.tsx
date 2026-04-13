@@ -1,27 +1,20 @@
 'use client';
 
 import { useEffect } from 'react';
-import { getMe } from '@/utils/api';
 
 export default function OAuthSuccess() {
   useEffect(() => {
     const channel = new BroadcastChannel('oauth');
+    const token = window.location.hash.slice(1);
 
-    getMe()
-      .then((data) => {
-        if (data?.user) {
-          channel.postMessage({ type: 'oauth-success', user: data.user });
-        } else {
-          channel.postMessage({ type: 'oauth-error' });
-        }
-      })
-      .catch(() => {
-        channel.postMessage({ type: 'oauth-error' });
-      })
-      .finally(() => {
-        channel.close();
-        window.close();
-      });
+    if (token) {
+      channel.postMessage({ type: 'oauth-token', token });
+    } else {
+      channel.postMessage({ type: 'oauth-error' });
+    }
+
+    channel.close();
+    window.close();
   }, []);
 
   return <p>Logging in…</p>;
