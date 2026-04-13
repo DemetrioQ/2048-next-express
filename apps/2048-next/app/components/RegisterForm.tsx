@@ -103,8 +103,8 @@ export default function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
       await register({ email, username, password });
       toast.success("Registered successfully");
       onSuccess();
-    } catch (err: any) {
-      toast.error(err.message || "Registration failed");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setSubmitting(false);
     }

@@ -13,7 +13,7 @@ export default function UploadImageModal({
     setOpen: (val: boolean) => void;
     onComplete: (ufsUrl: string) => void;
 }) {
-    const [uploading, setUploading] = useState(false); 1
+    const [uploading, setUploading] = useState(false);
 
 
     return (

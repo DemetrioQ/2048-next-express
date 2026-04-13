@@ -37,7 +37,7 @@ export async function refreshToken(): Promise<boolean> {
     // if (!res.ok) throw new Error('Token refresh failed');
     // return res.json();
     return res.ok;
-  } catch (err) {
+  } catch {
     return false;
   }
 }

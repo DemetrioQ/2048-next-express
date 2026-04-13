@@ -33,8 +33,8 @@ export const ResendVerificationButton = () => {
       toast.success('Verification email sent!');
       localStorage.setItem('lastVerificationEmailSent', Date.now().toString());
       setCooldown(COOLDOWN_SECONDS);
-    } catch (err : any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to resend verification email.');
     } finally {
       setLoading(false);
     }

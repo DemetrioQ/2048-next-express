@@ -2,7 +2,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getMe, loginWithOAuth, logout, registerUser, loginUser } from '@/utils/api';
 import { PublicUser } from 'shared-2048-logic/types/User'
-import { toast } from 'sonner';
 
 
 interface AuthContextType {
@@ -80,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.log('[AuthProvider] useEffect called');
             refreshUser();
         }
-        catch (err: any) {
+        catch (err: unknown) {
             console.log(err);
         }
     }, []);

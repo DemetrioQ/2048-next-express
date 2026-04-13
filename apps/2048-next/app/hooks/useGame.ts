@@ -5,7 +5,6 @@ import { moveUp, moveDown, moveLeft, moveRight } from 'shared-2048-logic/utils/m
 import { initializeBoard, generateRandomTile, cleanUpTiles, isGameOver } from 'shared-2048-logic/utils/gameLogic';
 import { GameHistory, TileMove, GameState, TileData } from 'shared-2048-logic/types';
 import { generateSeed, getRng } from 'shared-2048-logic/utils/seededRandom';
-import seedrandom from 'seedrandom';
 
 
 
@@ -72,7 +71,7 @@ export const useGame = () => {
   const resetGame = () => {
     localStorage.setItem("gameState", '{}');
     localStorage.removeItem('moveHistory');
-    const [seed, rng] = generateSeed();
+    const [seed] = generateSeed();
     setSeed(seed)
     setMoves(0);
     setScore(0);
@@ -113,7 +112,7 @@ export const useGame = () => {
 
     isMoving.current = true;
     const cleanedTiles = cleanUpTiles(tiles);
-    let result: any;
+    let result: ReturnType<typeof moveUp>;
 
     const previousState: GameHistory = {
       tiles: [...tiles],
