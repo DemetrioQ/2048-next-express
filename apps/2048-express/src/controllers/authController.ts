@@ -165,12 +165,14 @@ export const handleOAuthCallback = async (req: Request, res: Response) => {
 
     // res.redirect(`${process.env.FRONTEND_URL}/oauth/success`);
 
+    const publicUser = user.toPublic();
+
     res.send(`
     <html>
         <body>
         <script>
             if (window.opener) {
-            window.opener.postMessage({ type: 'oauth-success' }, '${process.env.FRONTEND_URL}');
+            window.opener.postMessage({ type: 'oauth-success', user: ${JSON.stringify(publicUser)} }, '${process.env.FRONTEND_URL}');
             window.close();
             } else {
             window.location.href = '${process.env.FRONTEND_URL}';

@@ -1,22 +1,16 @@
-import nodemailer from "nodemailer";
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function sendEmail(to: string, subject: string, html: string) {
-  const transporter = nodemailer.createTransport({
- service: "gmail",
-  auth: {
-    type: "OAuth2",
-    user: process.env.EMAIL_USER,
-    clientId: process.env.GMAIL_CLIENT_ID,
-    clientSecret: process.env.GMAIL_CLIENT_SECRET,
-    refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-    accessToken: process.env.GMAIL_ACCESS_TOKEN
-  },
-  });
-
-  await transporter.sendMail({
-    from: `"2048 App by Demetrio Quinones" <${process.env.EMAIL_USER}>`,
+  const { error } = await resend.emails.send({
+    from: '2048 App <onboarding@resend.dev>',
     to,
     subject,
     html,
   });
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }

@@ -72,22 +72,14 @@ export const loginWithOAuth = (
 
     console.log(event.data?.type);
     if (event.data?.type === 'oauth-success') {
-      console.log("success")
       messageReceived = true;
       window.removeEventListener('message', handleMessage);
-      setTimeout(async () => {
-        try {
-          const res = await getMe();
-          if (res?.user) {
-            onSuccess?.(res.user);
-          } else {
-            onError?.();
-          }
-        } catch (err) {
-          console.log(err);
-          onError?.();
-        }
-      }, 150); // 50–100ms is usually enough
+      const user = event.data.user;
+      if (user) {
+        onSuccess?.(user);
+      } else {
+        onError?.();
+      }
     }
 
     if (event.data?.type === 'oauth-error') {
