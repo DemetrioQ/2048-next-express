@@ -182,21 +182,16 @@ export async function verifyEmail(token: string) {
 }
 
 
-export async function resendEmailVerification() {
-
+export async function resendEmailVerification(): Promise<void> {
   const res = await fetchWithAuth(`${backendUrl}/profile/resend-verification`, {
     method: 'POST',
     credentials: 'include',
   });
 
-  const data = await res.json();
-
   if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { message?: string };
     throw new Error(data.message || 'Failed to resend verification email');
   }
-
-  return data;
-
 }
 
 
