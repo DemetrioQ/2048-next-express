@@ -47,6 +47,3 @@ next-env.d.ts
 .docker/
 
 .next/
-
-CLAUDE.md
-DEPLOY.md
