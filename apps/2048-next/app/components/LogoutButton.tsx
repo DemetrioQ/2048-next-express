@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -11,14 +12,15 @@ interface LogoutButtonProps {
 
 export default function LogoutButton({ onLogout }: LogoutButtonProps) {
   const [showConfirm, setShowConfirm] = useState(false);
-
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleLogout = async () => {
     setLoading(true);
     await onLogout();
     setShowConfirm(false);
     setLoading(false);
+    router.push('/');
   };
 
 

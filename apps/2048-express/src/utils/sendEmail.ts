@@ -1,4 +1,6 @@
 export default async function sendEmail(to: string, subject: string, html: string) {
+  console.log(`[sendEmail] Sending to=${to} subject="${subject}" from=${process.env.EMAIL_FROM} hasKey=${!!process.env.BREVO_API_KEY}`);
+
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
@@ -14,8 +16,10 @@ export default async function sendEmail(to: string, subject: string, html: strin
     }),
   });
 
+  const body = await res.json().catch(() => ({}));
+  console.log(`[sendEmail] Brevo status=${res.status}`, JSON.stringify(body));
+
   if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || 'Failed to send email');
+    throw new Error((body as { message?: string }).message || 'Failed to send email');
   }
 }
