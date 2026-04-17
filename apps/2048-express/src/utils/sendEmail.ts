@@ -1,23 +1,22 @@
 export default async function sendEmail(to: string, subject: string, html: string) {
-  console.log(`[sendEmail] Sending to=${to} subject="${subject}" from=${process.env.EMAIL_FROM} hasKey=${!!process.env.BREVO_API_KEY}`);
+  console.log(`[sendEmail] Sending to=${to} subject="${subject}" from=${process.env.EMAIL_FROM} hasKey=${!!process.env.RESEND_API_KEY}`);
 
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+  const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      'accept': 'application/json',
-      'api-key': process.env.BREVO_API_KEY!,
-      'content-type': 'application/json',
+      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      sender: { name: '2048 App', email: process.env.EMAIL_FROM },
-      to: [{ email: to }],
+      from: `2048 App <${process.env.EMAIL_FROM}>`,
+      to: [to],
       subject,
-      htmlContent: html,
+      html,
     }),
   });
 
   const body = await res.json().catch(() => ({}));
-  console.log(`[sendEmail] Brevo status=${res.status}`, JSON.stringify(body));
+  console.log(`[sendEmail] Resend status=${res.status}`, JSON.stringify(body));
 
   if (!res.ok) {
     throw new Error((body as { message?: string }).message || 'Failed to send email');

@@ -145,9 +145,9 @@ export const resendEmailVerification = async (req: Request, res: Response) => {
   const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
   console.log('[resendEmailVerification] sending email to:', user.email);
-  console.log('[resendEmailVerification] EMAIL_USER set:', !!process.env.EMAIL_USER);
-  console.log('[resendEmailVerification] GMAIL_CLIENT_ID set:', !!process.env.GMAIL_CLIENT_ID);
-  console.log('[resendEmailVerification] GMAIL_REFRESH_TOKEN set:', !!process.env.GMAIL_REFRESH_TOKEN);
+//   console.log('[resendEmailVerification] EMAIL_USER set:', !!process.env.EMAIL_USER);
+//   console.log('[resendEmailVerification] GMAIL_CLIENT_ID set:', !!process.env.GMAIL_CLIENT_ID);
+//   console.log('[resendEmailVerification] GMAIL_REFRESH_TOKEN set:', !!process.env.GMAIL_REFRESH_TOKEN);
 
   try {
     await sendEmail(
