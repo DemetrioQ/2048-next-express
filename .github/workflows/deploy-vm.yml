@@ -1,0 +1,63 @@
+name: Deploy 2048 to VM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/2048-express/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/demetrioq/2048-backend:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./apps/2048-next/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ghcr.io/demetrioq/2048-frontend:latest
+          build-args: |
+            NEXT_PUBLIC_BACKEND_URL=https://2048-api.demetrioq.com
+            NEXT_PUBLIC_FRONTEND_URL=https://2048.demetrioq.com
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/2048
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
