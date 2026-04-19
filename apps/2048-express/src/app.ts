@@ -45,6 +45,14 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.get('/health', (_req, res) => {
+  const dbReady = mongoose.connection.readyState === 1;
+  res.status(dbReady ? 200 : 503).json({
+    status: dbReady ? 'ok' : 'degraded',
+    db: mongoose.connection.readyState,
+  });
+});
+
 // ensure request logger runs before routes
 app.use(requestLogger);
 
