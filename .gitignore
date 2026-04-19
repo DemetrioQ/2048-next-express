@@ -32,6 +32,9 @@ node_modules/
 # env files
 .env*
 
+# Claude Code local config
+.claude/
+
 # vercel
 .vercel
 
