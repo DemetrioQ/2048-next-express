@@ -19,15 +19,24 @@ export default function GameClient() {
     const [loginModalOpen, setLoginModalOpen] = useState(false);
     const [scoreSubmitted, setScoreSubmitted] = useState(false);
     const [scoreSubmitting, setScoreSubmitting] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
     const searchParams = useSearchParams();
     const showLogin = searchParams.get('showLogin') === 'true';
 
-    
+
   useEffect(() => {
     if (showLogin && !loading && !user) {
       setLoginModalOpen(true);
     }
   }, [showLogin, loading]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: none)');
+    setIsTouchDevice(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsTouchDevice(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
     const handleGameReset = () => {
         setScoreSubmitted(false);
@@ -83,9 +92,9 @@ export default function GameClient() {
         <>
 
 
-            <h1 className="text-5xl font-bold text-[#776e65] mb-2">2048</h1>
+            <h1 className="text-4xl sm:text-5xl font-bold text-[#776e65] mb-1 sm:mb-2">2048</h1>
             {/* Animated ScoreBoard/GameOver container */}
-            <div className="mb-4 w-full max-w-[500px]">
+            <div className="mb-3 sm:mb-4 w-full max-w-[500px]">
                 <AnimatePresence mode='wait'>
                     {gameOver ? (
                         <motion.div
@@ -130,9 +139,9 @@ export default function GameClient() {
 
             </div>
 
-            <div className="mt-4 text-sm text-[#776e65] text-center px-4">
+            <div className="mt-3 text-sm text-[#776e65] text-center px-4">
                 <p>Join the tiles, get to <strong>2048!</strong></p>
-                <p>Swipe on the board, or use arrow keys / WASD</p>
+                <p>{isTouchDevice ? 'Swipe on the board to move' : 'Use arrow keys or WASD to move'}</p>
             </div>
 
             <LoginModal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} />

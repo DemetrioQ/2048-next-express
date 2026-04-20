@@ -9,15 +9,19 @@ interface GameBoardProps {
 }
 
 const BOARD_SIZE = TILE_SIZE * 4 + TILE_GAP * 3 + GRID_PADDING * 2;
-const HORIZONTAL_MARGIN = 32;
+const HORIZONTAL_MARGIN = 24;
 
 const GameBoard = ({ tiles }: GameBoardProps) => {
     const [scale, setScale] = useState(1);
 
     useEffect(() => {
         const update = () => {
-            const available = window.innerWidth - HORIZONTAL_MARGIN;
-            setScale(Math.min(1, available / BOARD_SIZE));
+            const isMobile = window.innerWidth < 640;
+            // Reserve space for: nav, title, scoreboard (2-row on mobile / 1-row on desktop), hint, paddings
+            const verticalOverhead = isMobile ? 290 : 240;
+            const widthScale = (window.innerWidth - HORIZONTAL_MARGIN) / BOARD_SIZE;
+            const heightScale = (window.innerHeight - verticalOverhead) / BOARD_SIZE;
+            setScale(Math.max(0.35, Math.min(1, widthScale, heightScale)));
         };
         update();
         window.addEventListener('resize', update);
