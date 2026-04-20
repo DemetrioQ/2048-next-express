@@ -130,9 +130,9 @@ export default function GameClient() {
 
             </div>
 
-            <div className="mt-4 text-sm text-[#776e65]">
+            <div className="mt-4 text-sm text-[#776e65] text-center px-4">
                 <p>Join the tiles, get to <strong>2048!</strong></p>
-                <p>Use arrow keys or WASD to move</p>
+                <p>Swipe on the board, or use arrow keys / WASD</p>
             </div>
 
             <LoginModal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
