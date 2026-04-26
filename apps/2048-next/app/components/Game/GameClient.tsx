@@ -4,6 +4,7 @@ import { useGame } from '@/hooks/useGame';
 import ScoreBoard from '@/components/Game/ScoreBoard';
 import GameBoard from '@/components/Game/GameBoard';
 import GameOverOverlay from '@/components/Game/GameOverOverlay';
+import WinOverlay from '@/components/Game/WinOverlay';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
@@ -13,7 +14,7 @@ import { toast } from 'sonner';
 import { useSearchParams } from 'next/navigation';
 
 export default function GameClient() {
-    const { tiles, score, bestScore, gameOver, moves, seed, moveHistory, undosLeft, handleUndo, resetGame, disableUndos } = useGame();
+    const { tiles, score, bestScore, gameOver, moves, seed, moveHistory, undosLeft, maxUndos, handleUndo, resetGame, disableUndos, showWinOverlay, dismissWinOverlay } = useGame();
     const { user, loading } = useAuth();
 
     const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -125,7 +126,7 @@ export default function GameClient() {
                             transition={{ duration: 0.2 }}
                             className="flex gap-4 justify-center"
                         >
-                            <ScoreBoard score={score} bestScore={bestScore} undosLeft={undosLeft} resetGame={resetGame} onUndo={handleUndo} />
+                            <ScoreBoard score={score} bestScore={bestScore} undosLeft={undosLeft} maxUndos={maxUndos} resetGame={resetGame} onUndo={handleUndo} />
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -136,6 +137,18 @@ export default function GameClient() {
                 <GameBoard
                     tiles={tiles}
                 />
+                {showWinOverlay && (
+                    <WinOverlay
+                        score={score}
+                        onKeepGoing={dismissWinOverlay}
+                        onSubmit={() => {
+                            dismissWinOverlay();
+                            handleSubmitScore();
+                        }}
+                        canSubmit={!!user && user.isVerified}
+                        submitting={scoreSubmitting}
+                    />
+                )}
 
             </div>
 

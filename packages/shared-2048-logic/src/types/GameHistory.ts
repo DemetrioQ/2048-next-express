@@ -4,4 +4,5 @@ export type GameHistory = {
     tiles: TileData[];
     score: number;
     moves: number;
+    rngCallCount: number;
   }

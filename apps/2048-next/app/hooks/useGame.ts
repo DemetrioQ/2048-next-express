@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { moveUp, moveDown, moveLeft, moveRight } from 'shared-2048-logic/utils/moveLogic';
 import { initializeBoard, generateRandomTile, cleanUpTiles, isGameOver } from 'shared-2048-logic/utils/gameLogic';
-import { GameHistory, TileMove, GameState, TileData } from 'shared-2048-logic/types';
+import { GameHistory, TileMove, GameState, TileData, Direction } from 'shared-2048-logic/types';
 import { generateSeed, getRng } from 'shared-2048-logic/utils/seededRandom';
+import { rewardForMerge } from 'shared-2048-logic/engine/tileKinds';
+import { useGameInput } from './useGameInput';
 
 
 
@@ -32,20 +34,21 @@ export const useGame = () => {
   const [maxUndos] = useState(2);
   const [moveHistory, setMoveHistory] = useState<TileMove[]>([]);
   const [seed, setSeed] = useState('');
-  // const rngRef = useRef<seedrandom.PRNG | null>(null);
+  const [celebrated2048, setCelebrated2048] = useState(false);
+  const [showWinOverlay, setShowWinOverlay] = useState(false);
+  const rngRef = useRef<(() => number) | null>(null);
   const rngCallCountRef = useRef(0);
   const isMoving = useRef(false);
 
-  const getRngWithCounter = (seed: string, count: number = 0) => {
+  // Seek the deterministic rng to (seed, startCount) and store a draw function
+  // in rngRef. Subsequent moves call rngRef.current directly with no per-move
+  // re-seek, so cost is O(1) per move instead of O(count).
+  const seekRng = (seed: string, startCount: number) => {
     const rng = getRng(seed);
-      // console.log("count in parameter: " + count)
-
-      // console.log("count before for loop : " + rngCallCountRef.current)
-    for (let i = 0; i < count; i++) rng(); // fast-forward
-    rngCallCountRef.current = count;
-    return () => {
+    for (let i = 0; i < startCount; i++) rng();
+    rngCallCountRef.current = startCount;
+    rngRef.current = () => {
       rngCallCountRef.current++;
-      // console.log("count after for loop : " + rngCallCountRef.current)
       return rng();
     };
   };
@@ -59,7 +62,8 @@ export const useGame = () => {
     setGameOver(gameState.gameOver);
     setUndoHistory(gameState.undoHistory);
     setSeed(gameState.seed);
-    rngCallCountRef.current = gameState.rngCallCount;
+    seekRng(gameState.seed, gameState.rngCallCount);
+    setCelebrated2048(!!gameState.celebrated2048);
     const savedScore = loadBestScore();
     if (savedScore) setBestScore(Number(savedScore));
   }
@@ -71,14 +75,13 @@ export const useGame = () => {
   const resetGame = () => {
     localStorage.setItem("gameState", '{}');
     localStorage.removeItem('moveHistory');
-    const [seed] = generateSeed();
-    setSeed(seed)
+    const [newSeed] = generateSeed();
+    setSeed(newSeed);
     setMoves(0);
     setScore(0);
     setUndosLeft(maxUndos);
-    const { tiles, initialTiles } = initializeBoard(getRngWithCounter(seed, 0));
-    // rngCallCountRef.current = rngCount;
-    // console.log( rngCallCountRef.current);
+    seekRng(newSeed, 0);
+    const { tiles, initialTiles } = initializeBoard(rngRef.current!);
     setTiles(tiles);
     setMoveHistory(initialTiles.map(tile => ({
       type: 'init',
@@ -88,6 +91,8 @@ export const useGame = () => {
 
     setGameOver(false);
     setUndoHistory([]);
+    setCelebrated2048(false);
+    setShowWinOverlay(false);
     const savedScore = loadBestScore();
     if (savedScore) setBestScore(Number(savedScore));
 
@@ -100,15 +105,17 @@ export const useGame = () => {
     setTiles(lastState.tiles);
     setScore(lastState.score);
     setMoves(lastState.moves);
+    seekRng(seed, lastState.rngCallCount);
     setUndoHistory(prev => prev.slice(0, -1));
     setMoveHistory(prev => prev.slice(0, -1));
     setUndosLeft(u => u - 1);
     setGameOver(false);
   };
 
-  const handleMove = useCallback((direction: string) => {
+  const handleMove = useCallback((direction: Direction) => {
     if (isMoving.current) return;
     if (gameOver) return;
+    if (!rngRef.current) return;
 
     isMoving.current = true;
     const cleanedTiles = cleanUpTiles(tiles);
@@ -118,22 +125,28 @@ export const useGame = () => {
       tiles: [...tiles],
       score,
       moves,
+      rngCallCount: rngCallCountRef.current,
     };
 
     switch (direction) {
-      case 'up': case 'w': result = moveUp(cleanedTiles); break;
-      case 'down': case 's': result = moveDown(cleanedTiles); break;
-      case 'left': case 'a': result = moveLeft(cleanedTiles); break;
-      case 'right': case 'd': result = moveRight(cleanedTiles); break;
+      case 'up': result = moveUp(cleanedTiles); break;
+      case 'down': result = moveDown(cleanedTiles); break;
+      case 'left': result = moveLeft(cleanedTiles); break;
+      case 'right': result = moveRight(cleanedTiles); break;
       default: return;
     }
 
     if (result.moved) {
-      const hasNew128 = result.tiles.some((t: TileData) =>
-        t.value === 128 && t.isMerged
+      const earnedUndoBonus = result.tiles.some(
+        (t: TileData) => t.isMerged && rewardForMerge(t)?.undoBonus
       );
-      if (hasNew128) {
+      if (earnedUndoBonus) {
         setUndosLeft(prev => Math.min(prev + 1, maxUndos));
+      }
+
+      if (!celebrated2048 && result.tiles.some(t => t.isMerged && t.value === 2048)) {
+        setCelebrated2048(true);
+        setShowWinOverlay(true);
       }
 
       setUndoHistory(prev => {
@@ -152,9 +165,7 @@ export const useGame = () => {
         return newScore;
       });
 
-      // const rng = getRng(seed);
-      const withNewTile =  generateRandomTile(result.tiles, getRngWithCounter(seed, rngCallCountRef.current));
-      // Track the new tile if it was generated
+      const withNewTile = generateRandomTile(result.tiles, rngRef.current!);
       setTiles(withNewTile);
       // Check game over after move
       if (isGameOver(withNewTile)) {
@@ -167,7 +178,7 @@ export const useGame = () => {
           ...prev,
           {
             type: 'move',
-            move: direction as 'up' | 'down' | 'left' | 'right',
+            move: direction,
             spawnedTile: spawnedTile
           }
         ]);
@@ -182,7 +193,7 @@ export const useGame = () => {
       isMoving.current = false;
     }
 
-  }, [tiles, bestScore, moves, maxUndos]);
+  }, [tiles, bestScore, moves, maxUndos, gameOver, seed]);
 
 
   // useEffect(() => {
@@ -199,62 +210,7 @@ export const useGame = () => {
   //   }
   // }, [rngRef.current]);
 
-useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-    const active = document.activeElement;
-    const isInputFocused =
-      active &&
-      (active.tagName === 'INPUT' ||
-        active.tagName === 'TEXTAREA' ||
-        (active as HTMLElement).isContentEditable);
-
-    if (isInputFocused) return; // Don't trigger game moves while typing
-
-    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 's', 'a', 'd'].includes(e.key)) return;
-
-    e.preventDefault();
-    handleMove(e.key.replace('Arrow', '').toLowerCase());
-  };
-
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchActive = false;
-  const SWIPE_THRESHOLD = 25;
-
-  const handleTouchStart = (e: TouchEvent) => {
-    const target = e.target as HTMLElement | null;
-    if (!target?.closest('[data-game-board]')) return;
-    touchActive = true;
-    const t = e.touches[0];
-    touchStartX = t.clientX;
-    touchStartY = t.clientY;
-  };
-
-  const handleTouchEnd = (e: TouchEvent) => {
-    if (!touchActive) return;
-    touchActive = false;
-    const t = e.changedTouches[0];
-    const dx = t.clientX - touchStartX;
-    const dy = t.clientY - touchStartY;
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-    if (Math.max(absDx, absDy) < SWIPE_THRESHOLD) return;
-    if (absDx > absDy) {
-      handleMove(dx > 0 ? 'right' : 'left');
-    } else {
-      handleMove(dy > 0 ? 'down' : 'up');
-    }
-  };
-
-  window.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('touchstart', handleTouchStart, { passive: true });
-  window.addEventListener('touchend', handleTouchEnd, { passive: true });
-  return () => {
-    window.removeEventListener('keydown', handleKeyDown);
-    window.removeEventListener('touchstart', handleTouchStart);
-    window.removeEventListener('touchend', handleTouchEnd);
-  };
-}, [handleMove]);
+  useGameInput(handleMove);
 
 
   useEffect(() => {
@@ -296,17 +252,20 @@ useEffect(() => {
       undoHistory,
       gameOver,
       seed,
-      rngCallCount: rngCallCountRef.current
+      rngCallCount: rngCallCountRef.current,
+      celebrated2048,
     };
     if (currentState.tiles.length > 0) localStorage.setItem('gameState', JSON.stringify(currentState));
 
-  }, [tiles, score, moves, undoHistory, undosLeft, gameOver]);
+  }, [tiles, score, moves, undoHistory, undosLeft, gameOver, celebrated2048]);
 
 
   useEffect(() => {
     if (moveHistory.length > 0) localStorage.setItem('moveHistory', JSON.stringify(moveHistory));
   }, [moveHistory]);
 
+
+  const dismissWinOverlay = () => setShowWinOverlay(false);
 
   return {
     tiles,
@@ -318,7 +277,10 @@ useEffect(() => {
     seed,
     handleUndo,
     undosLeft,
+    maxUndos,
     resetGame,
     disableUndos,
+    showWinOverlay,
+    dismissWinOverlay,
   };
 };

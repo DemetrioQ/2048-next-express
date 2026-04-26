@@ -67,7 +67,7 @@ export const refresh = async (req: Request, res: Response) => {
 }
 
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response, next: NextFunction) => {
     const { email, username, password } = req.body;
     try {
         const normalizedUsername = username.trim().toLowerCase();
@@ -111,42 +111,40 @@ export const register = async (req: Request, res: Response) => {
         res.status(201).json({ message: 'User registered successfully. Verification email sent.' });
         return;
     } catch (err) {
-        console.log(err)
-        res.status(500).json({ message: 'Server error' });
-        return;
+        next(err);
     }
 }
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
     passport.authenticate('local', async (err: unknown, user: IUser, info: { message: string }) => {
         if (err) return next(err);
-        const { accessToken, refreshToken } = generateTokens(user);
-
         if (!user) {
-            return res.status(401).json({ error: info?.message || 'Login failed' });
+            return res.status(401).json({ error: 'login_failed', message: info?.message || 'Login failed' });
         }
-        await RefreshToken.create({
-            userId: user._id,
-            token: refreshToken,
-            expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
-            userAgent: req.headers['user-agent'],
-            ipAddress: req.ip,
-        });
-        const publicUser: PublicUser = user.toPublic()
-        res.cookie('access_token', accessToken, baseCookieOptionsAccessToken)
-            .cookie('refresh_token', refreshToken, baseCookieOptionsRefreshToken)
-            .status(200)
-            .json({ message: 'Logged in successfully', user: publicUser });
 
+        try {
+            const { accessToken, refreshToken } = generateTokens(user);
+            await RefreshToken.create({
+                userId: user._id,
+                token: refreshToken,
+                expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
+                userAgent: req.headers['user-agent'],
+                ipAddress: req.ip,
+            });
+            const publicUser: PublicUser = user.toPublic();
+            res.cookie('access_token', accessToken, baseCookieOptionsAccessToken)
+                .cookie('refresh_token', refreshToken, baseCookieOptionsRefreshToken)
+                .status(200)
+                .json({ message: 'Logged in successfully', user: publicUser });
+        } catch (e) {
+            next(e);
+        }
     })(req, res, next);
 }
 
 export const handleOAuthCallback = async (req: Request, res: Response) => {
-    console.log('[OAuth] handleOAuthCallback called, req.user:', req.user ? (req.user as IUser)._id : 'null');
-    console.log('[OAuth] FRONTEND_URL env:', process.env.FRONTEND_URL);
     if (!req.user) {
-        console.warn('[OAuth] No req.user in handleOAuthCallback — redirecting to failure');
-        return res.redirect('/login?error=oauth');
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=oauth`);
     }
     const user = req.user as IUser;
     const { accessToken, refreshToken } = generateTokens(user);

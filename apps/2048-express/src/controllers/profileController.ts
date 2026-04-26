@@ -14,14 +14,14 @@ export const updateAvatar = async (req: Request, res: Response) => {
     const { imageUrl, imageKey } = req.body;
 
     if (!imageUrl || !imageKey) {
-        res.status(400).json({ error: 'Missing imageUrl or imageKey' });
+        res.status(400).json({ error: 'invalid_payload', message: 'Missing imageUrl or imageKey' });
         return
     }
 
     try {
         const user = await User.findById(req.user?.id);
         if (!user) {
-            res.status(404).json({ error: 'User not found' });
+            res.status(404).json({ error: 'not_found', message: 'User not found' });
             return
         }
 
@@ -43,8 +43,8 @@ export const updateAvatar = async (req: Request, res: Response) => {
 
         res.json({ success: true, avatar: user.avatar });
     } catch (err) {
-        console.error('Failed to update avatar:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('[updateAvatar] failed:', err);
+        res.status(500).json({ error: 'server_error', message: 'Internal server error' });
     }
 }
 
@@ -61,8 +61,8 @@ export const updateUsername = async (req: Request, res: Response) => {
         leo.check(newUserName)
     ) {
         res.status(400).json({
-            message:
-                'Username must be 3-20 characters, alphanumeric or "-", "_", and not contain profanity.',
+            error: 'invalid_username',
+            message: 'Username must be 3-20 characters, alphanumeric or "-", "_", and not contain profanity.',
         });
         return
     }
@@ -71,7 +71,7 @@ export const updateUsername = async (req: Request, res: Response) => {
 
     const exists = await User.findOne({ username: new RegExp(`^${normalizedUsername}$`, "i") });
     if (exists) {
-        res.status(409).json({ message: 'Username already taken' });
+        res.status(409).json({ error: 'username_taken', message: 'Username already taken' });
         return;
     }
 
@@ -85,7 +85,7 @@ export const updateUsername = async (req: Request, res: Response) => {
 export const checkUsernameAvailable = async (req: Request, res: Response) => {
     const { username } = req.query;
     if (typeof username !== "string" || !username.trim()) {
-        res.status(400).json({ message: "Username is required" });
+        res.status(400).json({ error: 'invalid_payload', message: "Username is required" });
         return;
     }
 
@@ -96,7 +96,10 @@ export const checkUsernameAvailable = async (req: Request, res: Response) => {
 
 export const verifyEmail = async (req: Request, res: Response) => {
     const { token } = req.query;
-    console.log(token)
+    if (typeof token !== 'string' || !token) {
+        res.status(400).send("Invalid or expired token.");
+        return;
+    }
     const user = await User.findOne({
         verificationToken: token,
         verificationExpires: { $gt: Date.now() },
@@ -117,11 +120,10 @@ export const verifyEmail = async (req: Request, res: Response) => {
 
 
 export const resendEmailVerification = async (req: Request, res: Response) => {
-  console.log('[resendEmailVerification] called, user:', (req.user as IUser)?._id);
   const user = req.user as IUser;
 
   if (user.verified) {
-    res.status(400).json({ message: 'Email is already verified.' });
+    res.status(400).json({ error: 'already_verified', message: 'Email is already verified.' });
     return;
   }
 
@@ -130,7 +132,7 @@ export const resendEmailVerification = async (req: Request, res: Response) => {
 
   if (lastSent && now.getTime() - lastSent.getTime() < COOLDOWN_MINUTES * 60 * 1000) {
     const secondsLeft = Math.ceil((COOLDOWN_MINUTES * 60 * 1000 - (now.getTime() - lastSent.getTime())) / 1000);
-    res.status(429).json({ message: `Please wait ${secondsLeft} seconds before resending verification email.` });
+    res.status(429).json({ error: 'cooldown', message: `Please wait ${secondsLeft} seconds before resending verification email.` });
     return;
   }
 
@@ -144,11 +146,6 @@ export const resendEmailVerification = async (req: Request, res: Response) => {
 
   const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
-  console.log('[resendEmailVerification] sending email to:', user.email);
-//   console.log('[resendEmailVerification] EMAIL_USER set:', !!process.env.EMAIL_USER);
-//   console.log('[resendEmailVerification] GMAIL_CLIENT_ID set:', !!process.env.GMAIL_CLIENT_ID);
-//   console.log('[resendEmailVerification] GMAIL_REFRESH_TOKEN set:', !!process.env.GMAIL_REFRESH_TOKEN);
-
   try {
     await sendEmail(
       user.email,
@@ -159,10 +156,9 @@ export const resendEmailVerification = async (req: Request, res: Response) => {
         <p><a href="${verificationUrl}" target="_blank" rel="noopener noreferrer">${verificationUrl}</a></p>
       `
     );
-    console.log('[resendEmailVerification] email sent successfully');
     res.status(200).json({ message: 'Verification email sent.' });
   } catch (err) {
     console.error('[resendEmailVerification] sendEmail failed:', err);
-    res.status(500).json({ message: 'Failed to send verification email. Please try again later.' });
+    res.status(500).json({ error: 'email_failed', message: 'Failed to send verification email. Please try again later.' });
   }
 };

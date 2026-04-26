@@ -9,12 +9,15 @@ import profileRoutes from './routes/profile';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { errorHandler } from './middlewares/errorHandler';
+import { notFoundHandler } from './middlewares/notFoundHandler';
 import { requestLogger } from './middlewares/requestLogMiddleware';
+import { registerProcessHandlers } from './utils/processHandlers';
 import MongoStore from 'connect-mongo';
 import cookieParser from 'cookie-parser';
 import { REFRESH_TOKEN_EXPIRY_MS } from './config/constants';
 
 dotenv.config();
+registerProcessHandlers();
 const app = express();
 const PORT = Number(process.env.PORT) || 8000;
 
@@ -61,14 +64,29 @@ app.use('/auth', authRoutes);
 app.use('/scores', scoresRoutes);
 app.use('/profile', profileRoutes);
 
+// 404 for unmatched routes (must come after route registration)
+app.use(notFoundHandler);
+
 // error handler last
 app.use(errorHandler);
 
-mongoose.connect(process.env.MONGO_URI!).then(() => {
-  const PORT = Number(process.env.PORT) || 8000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+mongoose.connect(process.env.MONGO_URI!)
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('[startup] MongoDB connection failed:', err);
+    process.exit(1);
   });
+
+mongoose.connection.on('error', (err) => {
+  console.error('[mongoose] connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('[mongoose] disconnected');
 });
 
 

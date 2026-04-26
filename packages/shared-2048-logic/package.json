@@ -6,7 +6,9 @@
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "build:watch": "tsc --watch"
+    "build:watch": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "packageManager": "pnpm@10.8.1+sha512.c50088ba998c67b8ca8c99df8a5e02fd2ae2e2b29aaf238feaa9e124248d3f48f9fb6db2424949ff901cffbb5e0f0cc1ad6aedb602cd29450751d11c35023677",
   "exports": {
@@ -22,23 +24,40 @@
     "./utils/gameLogic": {
       "import": "./src/utils/gameLogic.ts"
     },
+    "./utils/seededRandom": {
+      "import": "./src/utils/seededRandom.ts"
+    },
     "./types": {
       "import": "./src/types/index.ts"
     },
     "./utils": {
       "import": "./src/utils/index.ts"
+    },
+    "./schemas": {
+      "import": "./src/schemas/index.ts"
+    },
+    "./schemas/scoreSubmit": {
+      "import": "./src/schemas/scoreSubmit.ts"
+    },
+    "./engine": {
+      "import": "./src/engine/index.ts"
+    },
+    "./engine/tileKinds": {
+      "import": "./src/engine/tileKinds.ts"
     }
   },
   "dependencies": {
     "typescript": "^5.8.3",
     "@types/seedrandom": "^3.0.8",
     "seedrandom": "^3.0.5",
-    "@types/node": "^22.14.1"
+    "@types/node": "^22.14.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "typescript": "^5.8.3",
     "@types/seedrandom": "^3.0.8",
     "seedrandom": "^3.0.5",
-    "@types/node": "^22.14.1"
+    "@types/node": "^22.14.1",
+    "vitest": "^3.0.5"
   }
 }

@@ -1,5 +1,6 @@
 import { TileMove } from "../types";
 import { TileData } from "../types/TileData";
+import { pickSpawn, tryMerge } from "../engine/tileKinds";
 import { buildGridFromTiles } from "./gridHelper";
 import { moveTiles } from "./moveLogic";
 import { getRng } from "./seededRandom";
@@ -53,8 +54,6 @@ export const cleanUpTiles = (tiles: TileData[]): TileData[] => {
     ...tile,
     isNew: false,
     isMerged: false,
-    previousRow: tile.row,
-    previousCol: tile.col,
     mergedFrom: undefined
   }));
 };
@@ -76,13 +75,14 @@ export const generateRandomTile = (existingTiles: TileData[], rng: () => number)
   if (emptyCells.length === 0) return existingTiles;
 
   const { row, col } = emptyCells[Math.floor(rng() * emptyCells.length)];
-  const value = rng() < 0.9 ? 2 : 4;
+  const spawn = pickSpawn(rng);
 
   return [
     ...existingTiles,
     {
-      id: generateTileId(row, col, value, rng),
-      value,
+      id: generateTileId(row, col, spawn.value, rng),
+      value: spawn.value,
+      kind: spawn.kind,
       row,
       col,
       isNew: true
@@ -116,7 +116,7 @@ export const isGameOver = (tiles: TileData[]): boolean => {
 
         if (newRow < 4 && newCol < 4) {
           const neighbor = grid[newRow][newCol];
-          if (!neighbor || current.value === neighbor.value) {
+          if (!neighbor || tryMerge(current, neighbor) || tryMerge(neighbor, current)) {
             return false; // Move possible
           }
         }
@@ -133,16 +133,20 @@ export const verifyGame = (tileMoves: TileMove[], seed: string, submittedScore: 
 
   let { tiles, initialTiles } = initializeBoard(rng);
 
-  //Dont need to set initial tiles since the TileMove[] will give them because they are marked as type: "init"
-  let moveHistory : TileMove[] = initialTiles.map(tile => ({
-      type: 'init',
-      move: undefined,
-      spawnedTile: tile
-    } as TileMove));
-
-  const initialMoves =  tileMoves.slice(0, 2);
-
-  if (JSON.stringify(moveHistory) != JSON.stringify(initialMoves)) return false;
+  if (tileMoves.length < 2) return false;
+  for (let i = 0; i < 2; i++) {
+    const expected = initialTiles[i];
+    const actual = tileMoves[i];
+    if (
+      !actual ||
+      actual.type !== 'init' ||
+      actual.spawnedTile.row !== expected.row ||
+      actual.spawnedTile.col !== expected.col ||
+      actual.spawnedTile.value !== expected.value
+    ) {
+      return false;
+    }
+  }
 
 
   //Loop the moves array and do every move
@@ -185,12 +189,7 @@ export const verifyGame = (tileMoves: TileMove[], seed: string, submittedScore: 
         actualSpawnedTile.row !== expectedTile.row ||
         actualSpawnedTile.col !== expectedTile.col ||
         actualSpawnedTile.value !== expectedTile.value
-      ) 
-      {
-        console.log("Spawned tile mismatch:");
-        console.log("Expected:", expectedTile);
-        console.log("Actual:", actualSpawnedTile);
-        console.log("On move:", moves);
+      ) {
         return false;
       }
 
