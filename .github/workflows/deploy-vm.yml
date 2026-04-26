@@ -1,7 +1,9 @@
-name: Deploy 2048 to VM
+name: CI / Deploy 2048
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -10,7 +12,37 @@ permissions:
   packages: write
 
 jobs:
-  build-and-deploy:
+  ci:
+    name: Test & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.8.1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+  deploy:
+    name: Build & Deploy
+    needs: ci
+    # Skip on PRs; only deploy from main pushes or manual dispatches.
+    if: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
