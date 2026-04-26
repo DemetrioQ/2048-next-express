@@ -1,6 +1,7 @@
 import { Direction } from "../types/Direction";
 import { MoveResult } from "../types/MoveResult";
 import { TileData } from "../types/TileData";
+import { tryMerge } from "../engine/tileKinds";
 import { buildGridFromTiles } from "./gridHelper";
 
 
@@ -17,14 +18,17 @@ const processLine = (line: TileData[], direction: Direction) => {
       continue;
     }
 
-    if (prev.value === tile.value && !prev.isMerged && !tile.isMerged) {
+    const merge = !prev.isMerged && !tile.isMerged ? tryMerge(prev, tile) : null;
+
+    if (merge) {
       result.push({
         ...tile,
-        value: prev.value * 2,
+        value: merge.value,
+        kind: merge.kind ?? tile.kind,
         isMerged: true,
         mergedFrom: [prev.id, tile.id]
       });
-      score += prev.value * 2;
+      score += merge.value;
       prev = null;
     } else {
       result.push(prev);
@@ -81,8 +85,6 @@ export const moveTiles = (tiles: TileData[], direction: 'up' | 'down' | 'left' |
         ...tile,
         row,
         col,
-        previousRow: tile.row,
-        previousCol: tile.col
       });
     });
   }

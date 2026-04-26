@@ -1,29 +1,27 @@
 
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { IUser } from 'src/models/User';
-import { TileMove } from 'shared-2048-logic/types/TileMove'
 import { verifyGame } from 'shared-2048-logic/utils/gameLogic'
+import { submitScoreSchema } from 'shared-2048-logic/schemas/scoreSubmit'
 import Score from 'src/models/Score';
 import { hashGame } from 'src/utils/hash';
-//export const x = async (req: Request, res: Response) =>{}
 
-export const submitScore = async (req: Request, res: Response) => {
-    const { score, mode, seed } = req.body;
-    const moveHistory = req.body.moveHistory as TileMove[]
+export const submitScore = async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as IUser
 
-    try {
-
-    if (typeof score !== 'number' || score < 0 || !Array.isArray(moveHistory) || !seed) {
-         res.status(400).json({ error: 'invalid_payload' });
-         return
+    const parsed = submitScoreSchema.safeParse(req.body);
+    if (!parsed.success) {
+        res.status(400).json({ error: 'invalid_payload', message: 'Invalid submission payload' });
+        return;
     }
+    const { moveHistory, score, seed, mode } = parsed.data;
 
+    try {
         const isValid = verifyGame(moveHistory, seed, score)
 
         if (!isValid) {
             console.warn(`[CHEAT] User ${user.id} submitted invalid score`);
-            res.status(400).json({ error: 'invalid_score' });
+            res.status(400).json({ error: 'invalid_score', message: 'Score could not be verified' });
             return;
         }
 
@@ -32,7 +30,7 @@ export const submitScore = async (req: Request, res: Response) => {
         const existing = await Score.findOne({ gameHash });
         if (existing) {
             console.warn(`[DUPLICATE] User ${user.id} tried submitting a game twice`);
-            res.status(400).json({ error: 'duplicated_game' });
+            res.status(400).json({ error: 'duplicated_game', message: 'This game has already been submitted' });
             return;
         }
 
@@ -40,11 +38,14 @@ export const submitScore = async (req: Request, res: Response) => {
         res.status(201).json({ message: 'Score submitted' });
         return;
     }
-    catch (err) {
-        console.error(`[ERROR] Failed to submit score for user ${user.id}`, err);
-        res.status(500).json({ error: 'server_error' });
-        return;
-
+    catch (err: unknown) {
+        // Race: a concurrent submit with the same hash slipped past findOne.
+        // The unique index on gameHash backstops it.
+        if (err && typeof err === 'object' && 'code' in err && (err as { code?: number }).code === 11000) {
+            console.warn(`[DUPLICATE] User ${user.id} hit dup-key on score submit`);
+            res.status(400).json({ error: 'duplicated_game', message: 'This game has already been submitted' });
+            return;
+        }
+        next(err);
     }
-
 }

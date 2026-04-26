@@ -10,5 +10,6 @@ export type GameState =  {
   gameOver: boolean;
   seed: string;
   rngCallCount: number;
+  celebrated2048?: boolean;
 }
 
